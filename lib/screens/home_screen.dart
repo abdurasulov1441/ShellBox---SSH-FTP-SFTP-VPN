@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+
+import '../nav.dart';
+import '../services/sessions.dart';
+import '../theme.dart';
+import '../widgets/common.dart';
+import 'hosts_screen.dart';
+import 'keys_screen.dart';
+import 'settings_screen.dart';
+import 'snippets_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: _tab,
+              children: const [
+                HostsScreen(),
+                KeysScreen(),
+                SnippetsScreen(),
+                SettingsScreen(),
+              ],
+            ),
+          ),
+          ListenableBuilder(
+            listenable: SessionManager.instance,
+            builder: (context, _) {
+              final sessions = SessionManager.instance.sessions;
+              if (sessions.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              final connected = sessions.where((s) => s.isConnected).length;
+              return _ActiveSessionsBar(total: sessions.length, connected: connected);
+            },
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tab,
+        onDestinationSelected: (index) => setState(() => _tab = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.dns_outlined),
+            selectedIcon: Icon(Icons.dns_rounded),
+            label: 'Хосты',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.key_outlined),
+            selectedIcon: Icon(Icons.key_rounded),
+            label: 'Ключи',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bolt_outlined),
+            selectedIcon: Icon(Icons.bolt_rounded),
+            label: 'Сниппеты',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings_rounded),
+            label: 'Настройки',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveSessionsBar extends StatelessWidget {
+  const _ActiveSessionsBar({required this.total, required this.connected});
+
+  final int total;
+  final int connected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Material(
+        color: AppColors.surfaceHigh,
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(color: AppColors.green.withValues(alpha: 0.45)),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: showTerminal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                StatusDot(color: connected > 0 ? AppColors.green : AppColors.textDim, size: 10),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Активные сессии: $total',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                if (connected != total)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      'онлайн $connected',
+                      style: const TextStyle(color: AppColors.textDim, fontSize: 12.5),
+                    ),
+                  ),
+                const Icon(Icons.terminal_rounded, color: AppColors.accent, size: 20),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
