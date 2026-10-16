@@ -34,7 +34,7 @@ Future<void> showSnippetSheet(BuildContext context, TerminalSession session) asy
             children: [
               SheetTitle('Сниппеты', subtitle: 'Выполнить в ${session.host.title}'),
               if (snippets.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(24),
                   child: Text(
                     'Сниппетов пока нет. Добавьте их на вкладке «Сниппеты».',
@@ -50,7 +50,7 @@ Future<void> showSnippetSheet(BuildContext context, TerminalSession session) asy
                     itemBuilder: (_, index) {
                       final snippet = snippets[index];
                       return ListTile(
-                        leading: const Icon(Icons.bolt_rounded, color: AppColors.yellow),
+                        leading: Icon(Icons.bolt_rounded, color: AppColors.yellow),
                         title: Text(snippet.name.isEmpty ? snippet.command : snippet.name),
                         subtitle: Text(
                           snippet.command,
@@ -108,7 +108,7 @@ class SuggestionBar extends StatelessWidget {
         }
         return Container(
           height: 40,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.bg,
             border: Border(top: BorderSide(color: AppColors.border)),
           ),
@@ -192,7 +192,7 @@ class _ExtraKeysBarState extends State<ExtraKeysBar> {
       builder: (context, _) {
         return Container(
           height: 46,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             border: Border(top: BorderSide(color: AppColors.border)),
           ),

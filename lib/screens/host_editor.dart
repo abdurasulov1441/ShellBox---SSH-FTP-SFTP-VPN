@@ -278,7 +278,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                     onChanged: (value) => setState(() => _legacy = value),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     title: const Text('Старые алгоритмы'),
-                    subtitle: const Padding(
+                    subtitle: Padding(
                       padding: EdgeInsets.only(top: 4),
                       child: Text(
                         'Разрешить ssh-rsa (SHA-1), CBC-шифры и DH-sha1. Нужно для старых коммутаторов, роутеров и NAS. Менее безопасно.',
@@ -306,7 +306,8 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
             runSpacing: 10,
             children: [
               for (final value in AppColors.hostColors)
-                GestureDetector(
+                Pressable(
+                  scale: 0.88,
                   onTap: () => setState(() => _color = value),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -360,7 +361,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
           onSelectionChanged: (value) => _setProtocol(value.first),
         ),
         if (_protocol.isSsh)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 8, left: 4),
             child: Text(
               'Терминал и файлы по SFTP через одно подключение',
@@ -376,7 +377,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                 onChanged: (value) => setState(() => _protocol = value ? Protocol.ftps : Protocol.ftp),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 title: const Text('Шифрование TLS (FTPS)'),
-                subtitle: const Text(
+                subtitle: Text(
                   'Явный TLS через AUTH TLS (FTPES). Без него пароль передаётся открытым текстом.',
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
                 ),
@@ -416,9 +417,9 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
       return Card(
         child: ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          leading: const GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 36),
+          leading: GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 36),
           title: const Text('Ключей пока нет'),
-          subtitle: const Text('Сгенерируйте или импортируйте ключ', style: TextStyle(color: AppColors.textDim)),
+          subtitle: Text('Сгенерируйте или импортируйте ключ', style: TextStyle(color: AppColors.textDim)),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: _openKeys,
         ),

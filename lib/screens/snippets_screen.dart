@@ -80,7 +80,7 @@ class SnippetsScreen extends StatelessWidget {
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              const TextSpan(text: 'Запуск в: ', style: TextStyle(color: AppColors.textDim)),
+                              TextSpan(text: 'Запуск в: ', style: TextStyle(color: AppColors.textDim)),
                               TextSpan(
                                 text: target?.host.title ?? 'нет сессии — команда будет скопирована',
                                 style: TextStyle(
@@ -122,7 +122,7 @@ class SnippetsScreen extends StatelessWidget {
                                 padding: const EdgeInsets.all(14),
                                 child: Row(
                                   children: [
-                                    const GradientIcon(icon: Icons.bolt_rounded, color: AppColors.yellow, size: 40),
+                                    GradientIcon(icon: Icons.bolt_rounded, color: AppColors.yellow, size: 40),
                                     const SizedBox(width: 14),
                                     Expanded(
                                       child: Column(

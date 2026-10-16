@@ -61,7 +61,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
             children: [
               const SheetTitle('Новая вкладка', subtitle: 'Выберите хост для подключения'),
               if (hosts.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(24),
                   child: Text(
                     'Сохранённых хостов нет',
@@ -263,7 +263,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                       InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: () => manager.close(item),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.all(6),
                           child: Icon(Icons.close_rounded, size: 16, color: AppColors.textDim),
                         ),

@@ -37,13 +37,13 @@ class _VpnScreenState extends State<VpnScreen> {
             ListTile(
               leading: const GradientIcon(icon: Icons.folder_open_rounded, size: 38),
               title: const Text('Из файла'),
-              subtitle: const Text('Выберите .conf-файл', style: TextStyle(color: AppColors.textDim)),
+              subtitle: Text('Выберите .conf-файл', style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('file'),
             ),
             ListTile(
-              leading: const GradientIcon(icon: Icons.content_paste_rounded, color: AppColors.green, size: 38),
+              leading: GradientIcon(icon: Icons.content_paste_rounded, color: AppColors.green, size: 38),
               title: const Text('Из буфера обмена'),
-              subtitle: const Text('Вставить текст конфигурации', style: TextStyle(color: AppColors.textDim)),
+              subtitle: Text('Вставить текст конфигурации', style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('clipboard'),
             ),
             const SizedBox(height: 12),
@@ -126,8 +126,8 @@ class _VpnScreenState extends State<VpnScreen> {
               onTap: () => Navigator.of(sheetContext).pop('rename'),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline_rounded, color: AppColors.red),
-              title: const Text('Удалить', style: TextStyle(color: AppColors.red)),
+              leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
+              title: Text('Удалить', style: TextStyle(color: AppColors.red)),
               onTap: () => Navigator.of(sheetContext).pop('delete'),
             ),
             const SizedBox(height: 12),
@@ -200,7 +200,7 @@ class _VpnScreenState extends State<VpnScreen> {
                   ),
                 ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Конфигурации с приватным ключом хранятся только в защищённом хранилище устройства. VPN работает системно — весь трафик, включая SSH и FTP, идёт через туннель, пока он включён.',
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
               ),
@@ -251,11 +251,11 @@ class _StatusCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   active != null ? active.name : 'VPN выключен',
-                  style: const TextStyle(color: AppColors.textDim, fontSize: 13),
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13),
                 ),
                 if (controller.error != null) ...[
                   const SizedBox(height: 4),
-                  Text(controller.error!, style: const TextStyle(color: AppColors.red, fontSize: 12)),
+                  Text(controller.error!, style: TextStyle(color: AppColors.red, fontSize: 12)),
                 ],
               ],
             ),
@@ -334,7 +334,7 @@ class _ProfileCard extends StatelessWidget {
             else
               Switch(value: connected, onChanged: (_) => onToggle()),
             IconButton(
-              icon: const Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+              icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
               onPressed: onMenu,
             ),
           ],

@@ -207,7 +207,7 @@ class _FilesScreenState extends State<FilesScreen> {
   Future<void> _share(RemoteEntry entry) async {
     await _withBusy('Подготовка ${entry.name}…', () async {
       final temp = await getTemporaryDirectory();
-      final dir = Directory('${temp.path}${Platform.pathSeparator}konsol_share');
+      final dir = Directory('${temp.path}${Platform.pathSeparator}shellbox_share');
       await dir.create(recursive: true);
       final file = File('${dir.path}${Platform.pathSeparator}${entry.name}');
       if (await file.exists()) {
@@ -341,8 +341,8 @@ class _FilesScreenState extends State<FilesScreen> {
               onTap: () => Navigator.of(sheetContext).pop('rename'),
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline_rounded, color: AppColors.red),
-              title: const Text('Удалить', style: TextStyle(color: AppColors.red)),
+              leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
+              title: Text('Удалить', style: TextStyle(color: AppColors.red)),
               onTap: () => Navigator.of(sheetContext).pop('delete'),
             ),
             const SizedBox(height: 8),
@@ -423,7 +423,7 @@ class _FilesScreenState extends State<FilesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_busyLabel!, style: const TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                    Text(_busyLabel!, style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                     const SizedBox(height: 6),
                     const LinearProgressIndicator(minHeight: 2),
                   ],
@@ -447,7 +447,7 @@ class _FilesScreenState extends State<FilesScreen> {
     return Container(
       height: 44,
       alignment: Alignment.centerLeft,
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.border))),
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -458,7 +458,7 @@ class _FilesScreenState extends State<FilesScreen> {
             child: Row(
               children: [
                 for (var i = 0; i < crumbs.length; i++) ...[
-                  if (i > 0) const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textDim),
+                  if (i > 0) Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textDim),
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: i == crumbs.length - 1 ? null : () => _open(crumbs[i].value),
@@ -491,7 +491,7 @@ class _FilesScreenState extends State<FilesScreen> {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('Подключение к ${widget.host.title}…', style: const TextStyle(color: AppColors.textDim)),
+            Text('Подключение к ${widget.host.title}…', style: TextStyle(color: AppColors.textDim)),
           ],
         ),
       );
@@ -504,11 +504,11 @@ class _FilesScreenState extends State<FilesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const GradientIcon(icon: Icons.cloud_off_rounded, color: AppColors.red, size: 64),
+              GradientIcon(icon: Icons.cloud_off_rounded, color: AppColors.red, size: 64),
               const SizedBox(height: 18),
               const Text('Не удалось подключиться', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
               const SizedBox(height: 8),
-              Text(error, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textDim)),
+              Text(error, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: _connect,
@@ -531,15 +531,15 @@ class _FilesScreenState extends State<FilesScreen> {
         itemBuilder: (context, index) {
           if (hasParent && index == 0) {
             return ListTile(
-              leading: const _FileIcon(icon: Icons.drive_folder_upload_rounded, color: AppColors.textDim),
+              leading: _FileIcon(icon: Icons.drive_folder_upload_rounded, color: AppColors.textDim),
               title: Text('..', style: AppFonts.monoStyle(size: 14)),
-              subtitle: const Text('Наверх', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+              subtitle: Text('Наверх', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               onTap: () => _open(parentRemote(_path)),
             );
           }
           final itemIndex = index - (hasParent ? 1 : 0);
           if (itemIndex >= visible.length) {
-            return const Padding(
+            return Padding(
               padding: EdgeInsets.only(top: 60),
               child: Center(
                 child: Text('Папка пуста', style: TextStyle(color: AppColors.textDim)),
@@ -575,7 +575,7 @@ class _FilesScreenState extends State<FilesScreen> {
               style: AppFonts.monoStyle(size: 11, color: AppColors.textDim),
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+              icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
               onPressed: _busyLabel == null ? () => _entryMenu(entry) : null,
             ),
             onTap: _busyLabel == null ? () => _tapEntry(entry) : null,

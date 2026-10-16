@@ -7,6 +7,7 @@ import 'package:dartssh2/dartssh2.dart';
 
 import '../models.dart';
 import 'ftp_client.dart';
+import 'activity_log.dart';
 import 'store.dart';
 
 class HostKeyCheck {
@@ -129,6 +130,7 @@ class SshConnector {
       return reply?.password;
     }
 
+    ActivityLog.instance.info('SSH', 'Подключение к ${host.subtitle}');
     final socket = await SSHSocket.connect(host.address, host.port, timeout: const Duration(seconds: 12));
 
     final client = SSHClient(
@@ -176,10 +178,12 @@ class SshConnector {
 
     try {
       await client.authenticated;
-    } catch (_) {
+    } catch (e) {
+      ActivityLog.instance.error('SSH', 'Ошибка входа ${host.subtitle}: ${describeSshError(e)}');
       client.close();
       rethrow;
     }
+    ActivityLog.instance.success('SSH', 'Подключено к ${host.subtitle}');
 
     final reply = lastReply;
     if (reply != null && reply.remember && store.hostById(host.id) != null) {

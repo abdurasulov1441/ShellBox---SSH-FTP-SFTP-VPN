@@ -92,11 +92,6 @@ class _HostsScreenState extends State<HostsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'hosts-fab',
-        onPressed: _addHost,
-        child: const Icon(Icons.add_rounded),
-      ),
       body: ListenableBuilder(
         listenable: AppStore.instance,
         builder: (context, _) {
@@ -229,7 +224,7 @@ class _HostsScreenState extends State<HostsScreen> {
                   ),
                 )
               else if (filtered.isEmpty && quick == null)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text('Ничего не найдено', style: TextStyle(color: AppColors.textDim)),
@@ -242,7 +237,7 @@ class _HostsScreenState extends State<HostsScreen> {
                       group.isEmpty ? (groupNames.length > 1 ? 'Без группы' : 'Все хосты') : group,
                       trailing: Text(
                         '${grouped[group]!.length}',
-                        style: const TextStyle(color: AppColors.textDim, fontSize: 12),
+                        style: TextStyle(color: AppColors.textDim, fontSize: 12),
                       ),
                     ),
                   ),
@@ -449,7 +444,7 @@ class _HostTile extends StatelessWidget {
                 IconButton(
                   tooltip: 'Файлы (SFTP)',
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.folder_open_rounded, size: 20, color: AppColors.accent),
+                  icon: Icon(Icons.folder_open_rounded, size: 20, color: AppColors.accent),
                   onPressed: () => openFiles(host),
                 ),
               if (host.protocol.isSsh)
@@ -462,7 +457,7 @@ class _HostTile extends StatelessWidget {
                   ),
                 ),
               if (host.legacy)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(left: 6),
                   child: Tooltip(
                     message: 'Старые алгоритмы',
@@ -470,7 +465,7 @@ class _HostTile extends StatelessWidget {
                   ),
                 ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+                icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
                 onSelected: (value) => _onMenu(context, value),
                 itemBuilder: (_) => [
                   if (host.protocol.isSsh) ...const [
@@ -499,7 +494,7 @@ class _HostTile extends StatelessWidget {
                     value: 'duplicate',
                     child: ListTile(leading: Icon(Icons.copy_all_rounded), title: Text('Дублировать')),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
                       leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
@@ -587,7 +582,7 @@ class _VpnAction extends StatelessWidget {
                 color: connected ? AppColors.green : (busy ? AppColors.yellow : AppColors.textDim),
               ),
               if (connected)
-                const Positioned(
+                Positioned(
                   right: 2,
                   top: 4,
                   child: StatusDot(color: AppColors.green, size: 7),

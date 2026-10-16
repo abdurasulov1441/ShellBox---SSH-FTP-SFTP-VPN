@@ -14,6 +14,11 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+    configurations.all {
+        resolutionStrategy {
+            force("com.wireguard.android:tunnel:1.0.20260102")
+        }
+    }
     afterEvaluate {
         val androidExtension = project.extensions.findByName("android")
         if (androidExtension is com.android.build.gradle.BaseExtension) {

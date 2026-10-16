@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255882528646",
+    "project_id": "shellbox-381f3",
+    "storage_bucket": "shellbox-381f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255882528646:android:bf96928964828e6cf50e07",
+        "android_client_info": {
+          "package_name": "uz.shellbox"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu3cdTGDwClLvTVPVAi1pDrP9UsBLSEbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

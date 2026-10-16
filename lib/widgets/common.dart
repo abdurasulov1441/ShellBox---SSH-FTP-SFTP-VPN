@@ -1,26 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models.dart';
 import '../theme.dart';
+
+class Pressable extends StatefulWidget {
+  const Pressable({
+    super.key,
+    required this.onTap,
+    required this.child,
+    this.onLongPress,
+    this.scale = 0.95,
+    this.haptic = true,
+  });
+
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final Widget child;
+  final double scale;
+  final bool haptic;
+
+  @override
+  State<Pressable> createState() => _PressableState();
+}
+
+class _PressableState extends State<Pressable> {
+  bool _down = false;
+
+  void _set(bool value) {
+    if (_down != value && mounted) {
+      setState(() => _down = value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      onTap: () {
+        if (widget.haptic) {
+          HapticFeedback.selectionClick();
+        }
+        widget.onTap();
+      },
+      onLongPress: widget.onLongPress,
+      child: AnimatedScale(
+        scale: _down ? widget.scale : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
 
 class GradientIcon extends StatelessWidget {
   const GradientIcon({
     super.key,
     required this.icon,
-    this.color = AppColors.accent,
+    this.color,
     this.size = 40,
     this.iconSize,
     this.radius = 12,
   });
 
   final IconData icon;
-  final Color color;
+  final Color? color;
   final double size;
   final double? iconSize;
   final double radius;
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? AppColors.accent;
     final hsl = HSLColor.fromColor(color);
     final light = hsl.withLightness((hsl.lightness + 0.12) > 1 ? 1 : hsl.lightness + 0.12).toColor();
     final dark = hsl.withLightness((hsl.lightness - 0.14) < 0 ? 0 : hsl.lightness - 0.14).toColor();

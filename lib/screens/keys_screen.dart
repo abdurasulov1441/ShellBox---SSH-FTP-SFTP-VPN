@@ -30,13 +30,13 @@ class KeysScreen extends StatelessWidget {
             ListTile(
               leading: const GradientIcon(icon: Icons.auto_awesome_rounded, size: 38),
               title: const Text('Сгенерировать Ed25519'),
-              subtitle: const Text('Быстрый и надёжный современный ключ', style: TextStyle(color: AppColors.textDim)),
+              subtitle: Text('Быстрый и надёжный современный ключ', style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('generate'),
             ),
             ListTile(
-              leading: const GradientIcon(icon: Icons.file_download_rounded, color: AppColors.green, size: 38),
+              leading: GradientIcon(icon: Icons.file_download_rounded, color: AppColors.green, size: 38),
               title: const Text('Импортировать'),
-              subtitle: const Text('OpenSSH, RSA или EC в формате PEM', style: TextStyle(color: AppColors.textDim)),
+              subtitle: Text('OpenSSH, RSA или EC в формате PEM', style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('import'),
             ),
             const SizedBox(height: 12),
@@ -65,7 +65,7 @@ class KeysScreen extends StatelessWidget {
       return;
     }
     try {
-      final comment = 'konsol-${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9._-]+'), '-')}';
+      final comment = 'shellbox-${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9._-]+'), '-')}';
       final generated = await KeyGen.ed25519(comment);
       final key = SshKey(
         id: AppStore.newId(),
@@ -180,7 +180,7 @@ class _KeyTile extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
           child: Row(
             children: [
-              const GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 42),
+              GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 42),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -192,15 +192,15 @@ class _KeyTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       used > 0 ? 'Создан $created · хостов: $used' : 'Создан $created',
-                      style: const TextStyle(color: AppColors.textDim, fontSize: 12),
+                      style: TextStyle(color: AppColors.textDim, fontSize: 12),
                     ),
                   ],
                 ),
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+                icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
                 onSelected: (value) => _onMenu(context, value),
-                itemBuilder: (_) => const [
+                itemBuilder: (_) => [
                   PopupMenuItem(
                     value: 'public',
                     child: ListTile(leading: Icon(Icons.public_rounded), title: Text('Публичный ключ')),
@@ -281,7 +281,7 @@ Future<void> showPublicKeySheet(BuildContext context, SshKey key) async {
                           Navigator.of(sheetContext).pop();
                           showSnack('Ключ добавлен на ${session.host.title}');
                         },
-                        icon: const Icon(Icons.bolt_rounded, color: AppColors.yellow),
+                        icon: Icon(Icons.bolt_rounded, color: AppColors.yellow),
                         label: Text('Установить на ${session.host.title}'),
                       ),
                     ],
@@ -508,14 +508,14 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.error_outline_rounded, color: AppColors.red, size: 18),
+                Icon(Icons.error_outline_rounded, color: AppColors.red, size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.red))),
+                Expanded(child: Text(_error!, style: TextStyle(color: AppColors.red))),
               ],
             ),
           ],
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Приватный ключ хранится только в защищённом хранилище устройства и никуда не передаётся.',
             style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
           ),

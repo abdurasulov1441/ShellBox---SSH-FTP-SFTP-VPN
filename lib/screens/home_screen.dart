@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../nav.dart';
 import '../services/sessions.dart';
+import '../services/theme_controller.dart';
 import '../theme.dart';
+import '../widgets/app_nav_bar.dart';
 import '../widgets/common.dart';
+import 'host_editor.dart';
 import 'hosts_screen.dart';
 import 'keys_screen.dart';
 import 'settings_screen.dart';
@@ -21,6 +25,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: ThemeController.instance,
+      builder: (context, _) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
@@ -48,30 +59,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (index) => setState(() => _tab = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dns_outlined),
-            selectedIcon: Icon(Icons.dns_rounded),
-            label: 'Хосты',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.key_outlined),
-            selectedIcon: Icon(Icons.key_rounded),
-            label: 'Ключи',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bolt_outlined),
-            selectedIcon: Icon(Icons.bolt_rounded),
-            label: 'Сниппеты',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: 'Настройки',
-          ),
+      bottomNavigationBar: AppNavBar(
+        currentIndex: _tab,
+        onTap: (index) => setState(() => _tab = index),
+        onCenterTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const HostEditorScreen()),
+        ),
+        items: const [
+          NavItem(icon: HugeIcons.strokeRoundedServerStack01, label: 'Хосты'),
+          NavItem(icon: HugeIcons.strokeRoundedKey01, label: 'Ключи'),
+          NavItem(icon: HugeIcons.strokeRoundedFlash, label: 'Сниппеты'),
+          NavItem(icon: HugeIcons.strokeRoundedSettings02, label: 'Настройки'),
         ],
       ),
     );
@@ -116,12 +114,12 @@ class _ActiveSessionsBar extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 8),
                     child: Text(
                       'онлайн $connected',
-                      style: const TextStyle(color: AppColors.textDim, fontSize: 12.5),
+                      style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
                     ),
                   ),
-                const Icon(Icons.terminal_rounded, color: AppColors.accent, size: 20),
+                Icon(Icons.terminal_rounded, color: AppColors.accent, size: 20),
                 const SizedBox(width: 4),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+                Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
               ],
             ),
           ),

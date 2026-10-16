@@ -19,6 +19,9 @@ class AppStore extends ChangeNotifier {
   static const _fontSizeKey = 'font_size';
   static const _terminalThemeKey = 'terminal_theme';
   static const _terminalFontKey = 'terminal_font';
+  static const _themeModeKey = 'theme_mode';
+  static const _lockEnabledKey = 'lock_enabled';
+  static const _biometricKey = 'biometric_enabled';
   static const _vpnKey = 'vpn_profiles';
 
   static final _random = Random.secure();
@@ -43,6 +46,9 @@ class AppStore extends ChangeNotifier {
   double _fontSize = 14;
   String _terminalTheme = 'midnight';
   String _terminalFont = 'jetbrains';
+  String _themeMode = 'system';
+  bool _lockEnabled = false;
+  bool _biometricEnabled = false;
   final List<String> _commandHistory = [];
 
   List<Host> get hosts => List.unmodifiable(_hosts);
@@ -53,6 +59,9 @@ class AppStore extends ChangeNotifier {
   double get fontSize => _fontSize;
   String get terminalTheme => _terminalTheme;
   String get terminalFont => _terminalFont;
+  String get themeMode => _themeMode;
+  bool get lockEnabled => _lockEnabled;
+  bool get biometricEnabled => _biometricEnabled;
 
   List<String> get commandHistory => _commandHistory.reversed.toList(growable: false);
 
@@ -136,6 +145,9 @@ class AppStore extends ChangeNotifier {
     _fontSize = storedFont == null ? 14 : _limitFont(storedFont);
     _terminalTheme = _prefs.getString(_terminalThemeKey) ?? 'midnight';
     _terminalFont = _prefs.getString(_terminalFontKey) ?? 'jetbrains';
+    _themeMode = _prefs.getString(_themeModeKey) ?? 'system';
+    _lockEnabled = _prefs.getBool(_lockEnabledKey) ?? false;
+    _biometricEnabled = _prefs.getBool(_biometricKey) ?? false;
     _vpnProfiles =
         _decodeList(_prefs.getString(_vpnKey)).map(VpnProfile.fromJson).where((p) => p.id.isNotEmpty).toList();
     notifyListeners();
@@ -357,6 +369,31 @@ class AppStore extends ChangeNotifier {
     _terminalFont = id;
     notifyListeners();
     await _prefs.setString(_terminalFontKey, id);
+  }
+
+  Future<void> setThemeMode(String value) async {
+    _themeMode = value;
+    await _prefs.setString(_themeModeKey, value);
+  }
+
+  Future<String?> readPin() => _readSecret('app_pin');
+
+  Future<void> setLock({required bool enabled, String? pin, bool? biometric}) async {
+    _lockEnabled = enabled;
+    await _prefs.setBool(_lockEnabledKey, enabled);
+    if (pin != null) {
+      await _writeSecret('app_pin', pin);
+    }
+    if (!enabled) {
+      await _writeSecret('app_pin', null);
+      _biometricEnabled = false;
+      await _prefs.setBool(_biometricKey, false);
+    }
+    if (biometric != null) {
+      _biometricEnabled = biometric;
+      await _prefs.setBool(_biometricKey, biometric);
+    }
+    notifyListeners();
   }
 
   VpnProfile? vpnProfileById(String id) {

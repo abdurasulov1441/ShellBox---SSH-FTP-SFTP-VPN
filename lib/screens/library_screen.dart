@@ -52,14 +52,14 @@ class CommandLibraryScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textDim),
+                      Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textDim),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           target != null
                               ? 'Нажатие запускает команду в «${target.host.title}». Замените TARGET на адрес цели.'
                               : 'Нет активной сессии — нажатие копирует команду. TARGET замените на адрес цели.',
-                          style: const TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
+                          style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                         ),
                       ),
                     ],
@@ -90,8 +90,7 @@ class _CategoryTile extends StatelessWidget {
       child: ExpansionTile(
         leading: Icon(category.icon, color: AppColors.accent),
         title: Text(category.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle:
-            Text('${category.commands.length} команд', style: const TextStyle(color: AppColors.textDim, fontSize: 12)),
+        subtitle: Text('${category.commands.length} команд', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
         childrenPadding: const EdgeInsets.only(bottom: 8),
         shape: const Border(),
         collapsedShape: const Border(),
@@ -111,7 +110,7 @@ class _CategoryTile extends StatelessWidget {
               ),
               trailing: IconButton(
                 tooltip: 'В сниппеты',
-                icon: const Icon(Icons.bookmark_add_outlined, size: 20, color: AppColors.textDim),
+                icon: Icon(Icons.bookmark_add_outlined, size: 20, color: AppColors.textDim),
                 onPressed: () => onSave(command),
               ),
               onTap: () => onRun(command),

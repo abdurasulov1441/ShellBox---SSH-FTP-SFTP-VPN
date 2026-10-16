@@ -245,7 +245,7 @@ class FtpFs implements RemoteFs {
     }
     final ftp = FtpClient(host: host.address, port: host.port, secure: host.protocol == Protocol.ftps);
     try {
-      await ftp.connect(_anonymous ? 'anonymous' : host.username.trim(), _anonymous ? 'anonymous@konsol' : password);
+      await ftp.connect(_anonymous ? 'anonymous' : host.username.trim(), _anonymous ? 'anonymous@shellbox' : password);
     } catch (_) {
       await ftp.close();
       rethrow;

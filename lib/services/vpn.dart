@@ -5,6 +5,7 @@ import 'package:wireguard_flutter/wireguard_flutter.dart';
 import 'package:wireguard_flutter/wireguard_flutter_platform_interface.dart';
 
 import '../models.dart';
+import 'activity_log.dart';
 import 'store.dart';
 
 class VpnController extends ChangeNotifier {
@@ -12,7 +13,7 @@ class VpnController extends ChangeNotifier {
 
   static final VpnController instance = VpnController._();
 
-  static const _interfaceName = 'konsol';
+  static const _interfaceName = 'shellbox';
 
   final WireGuardFlutterInterface _wireguard = WireGuardFlutter.instance;
   bool _initialized = false;
@@ -48,6 +49,9 @@ class VpnController extends ChangeNotifier {
     await _wireguard.initialize(interfaceName: _interfaceName);
     _wireguard.vpnStageSnapshot.listen((stage) {
       _stage = stage;
+      if (stage == VpnStage.connected) {
+        ActivityLog.instance.success('VPN', 'Туннель активен');
+      }
       if (stage == VpnStage.disconnected || stage == VpnStage.noConnection) {
         _activeId = null;
       }
@@ -70,10 +74,11 @@ class VpnController extends ChangeNotifier {
       _stage = VpnStage.connecting;
       notifyListeners();
       await AppStore.instance.touchVpnProfile(profile.id);
+      ActivityLog.instance.info('VPN', 'Подключение: ${profile.name}');
       await _wireguard.startVpn(
         serverAddress: profile.endpoint,
         wgQuickConfig: config,
-        providerBundleIdentifier: 'uz.konsol.konsol',
+        providerBundleIdentifier: 'uz.shellbox',
       );
     } catch (e) {
       _error = describeVpnError(e);

@@ -70,11 +70,11 @@ Future<bool> confirmAction({
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(title),
-      content: Text(message, style: const TextStyle(color: AppColors.textDim, height: 1.4)),
+      content: Text(message, style: TextStyle(color: AppColors.textDim, height: 1.4)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
         ),
         FilledButton(
           style: destructive ? FilledButton.styleFrom(backgroundColor: AppColors.red) : null,
@@ -136,7 +136,7 @@ class _HostKeyDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+            child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: color),
@@ -214,7 +214,7 @@ class _PasswordDialogState extends State<_PasswordDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
         ),
         FilledButton(onPressed: _submit, child: const Text('Войти')),
       ],
@@ -285,7 +285,7 @@ class _PromptDialogState extends State<_PromptDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
         ),
         FilledButton(onPressed: _submit, child: Text(widget.confirmLabel)),
       ],
