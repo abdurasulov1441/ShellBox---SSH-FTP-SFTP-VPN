@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wireguard_flutter/wireguard_flutter.dart';
 import 'package:wireguard_flutter/wireguard_flutter_platform_interface.dart';
@@ -50,7 +51,7 @@ class VpnController extends ChangeNotifier {
     _wireguard.vpnStageSnapshot.listen((stage) {
       _stage = stage;
       if (stage == VpnStage.connected) {
-        ActivityLog.instance.success('VPN', 'Туннель активен');
+        ActivityLog.instance.success('VPN', 'vpn.log_tunnel_active'.tr());
       }
       if (stage == VpnStage.disconnected || stage == VpnStage.noConnection) {
         _activeId = null;
@@ -66,7 +67,7 @@ class VpnController extends ChangeNotifier {
       await _ensureInit();
       final config = await AppStore.instance.readVpnConfig(profile.id);
       if (config == null || config.isEmpty) {
-        _error = 'Конфигурация профиля не найдена';
+        _error = 'vpn.config_not_found'.tr();
         notifyListeners();
         return;
       }
@@ -74,7 +75,7 @@ class VpnController extends ChangeNotifier {
       _stage = VpnStage.connecting;
       notifyListeners();
       await AppStore.instance.touchVpnProfile(profile.id);
-      ActivityLog.instance.info('VPN', 'Подключение: ${profile.name}');
+      ActivityLog.instance.info('VPN', 'vpn.log_connecting'.tr(namedArgs: {'name': profile.name}));
       await _wireguard.startVpn(
         serverAddress: profile.endpoint,
         wgQuickConfig: config,
@@ -115,43 +116,43 @@ class VpnController extends ChangeNotifier {
 String describeVpnError(Object error) {
   final text = error.toString().toLowerCase();
   if (text.contains('denied') || text.contains('permission') || text.contains('prepare')) {
-    return 'Разрешение на VPN не выдано. Разрешите подключение в системном окне.';
+    return 'vpn.err_permission'.tr();
   }
   if (text.contains('keyformat') || text.contains('crypto')) {
-    return 'Неверный ключ в конфигурации WireGuard. Проверьте PrivateKey и PublicKey в .conf';
+    return 'vpn.err_key'.tr();
   }
   if (text.contains('unsupported')) {
-    return 'VPN не поддерживается на этой платформе';
+    return 'vpn.err_unsupported'.tr();
   }
   if (text.contains('parse') || text.contains('badconfig') || text.contains('config')) {
-    return 'Не удалось разобрать конфигурацию WireGuard';
+    return 'vpn.err_parse'.tr();
   }
-  return 'Ошибка VPN: $error';
+  return 'vpn.err_generic'.tr(namedArgs: {'error': '$error'});
 }
 
 String vpnStageLabel(VpnStage stage) {
   switch (stage) {
     case VpnStage.connected:
-      return 'Подключено';
+      return 'vpn.stage_connected'.tr();
     case VpnStage.connecting:
-      return 'Подключение…';
+      return 'vpn.stage_connecting'.tr();
     case VpnStage.disconnecting:
-      return 'Отключение…';
+      return 'vpn.stage_disconnecting'.tr();
     case VpnStage.disconnected:
-      return 'Отключено';
+      return 'vpn.stage_disconnected'.tr();
     case VpnStage.waitingConnection:
-      return 'Ожидание соединения…';
+      return 'vpn.stage_waiting'.tr();
     case VpnStage.authenticating:
-      return 'Проверка…';
+      return 'vpn.stage_auth'.tr();
     case VpnStage.reconnect:
-      return 'Переподключение…';
+      return 'vpn.stage_reconnect'.tr();
     case VpnStage.noConnection:
-      return 'Нет соединения';
+      return 'vpn.stage_no_conn'.tr();
     case VpnStage.preparing:
-      return 'Подготовка…';
+      return 'vpn.stage_preparing'.tr();
     case VpnStage.denied:
-      return 'Доступ запрещён';
+      return 'vpn.stage_denied'.tr();
     case VpnStage.exiting:
-      return 'Завершение…';
+      return 'vpn.stage_exiting'.tr();
   }
 }

@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../models.dart';
@@ -26,7 +28,7 @@ class SnippetsScreen extends StatelessWidget {
     final session = manager.connectedCurrent;
     if (session == null) {
       await Clipboard.setData(ClipboardData(text: snippet.command));
-      showSnack('Нет активной сессии — команда скопирована');
+      showSnack('snippets.no_session_copied'.tr());
       return;
     }
     manager.selectSession(session);
@@ -38,11 +40,11 @@ class SnippetsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Сниппеты'),
+        title: Text('nav.snippets'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Библиотека команд',
-            icon: const Icon(Icons.library_books_rounded),
+            tooltip: 'snippets.library'.tr(),
+            icon: const Icon(HugeIcons.strokeRoundedBookOpen01),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const CommandLibraryScreen()),
             ),
@@ -52,7 +54,7 @@ class SnippetsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         heroTag: 'snippets-fab',
         onPressed: () => _edit(context),
-        child: const Icon(Icons.add_rounded),
+        child: const Icon(HugeIcons.strokeRoundedAdd01),
       ),
       body: ListenableBuilder(
         listenable: Listenable.merge([AppStore.instance, SessionManager.instance]),
@@ -80,9 +82,9 @@ class SnippetsScreen extends StatelessWidget {
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              TextSpan(text: 'Запуск в: ', style: TextStyle(color: AppColors.textDim)),
+                              TextSpan(text: 'snippets.run_at'.tr(), style: TextStyle(color: AppColors.textDim)),
                               TextSpan(
-                                text: target?.host.title ?? 'нет сессии — команда будет скопирована',
+                                text: target?.host.title ?? 'snippets.no_session_hint'.tr(),
                                 style: TextStyle(
                                   fontWeight: target != null ? FontWeight.w600 : FontWeight.w400,
                                   color: target != null ? AppColors.text : AppColors.textDim,
@@ -101,10 +103,10 @@ class SnippetsScreen extends StatelessWidget {
               Expanded(
                 child: snippets.isEmpty
                     ? EmptyState(
-                        icon: Icons.bolt_rounded,
-                        title: 'Нет сниппетов',
-                        message: 'Сохраняйте частые команды и запускайте их одним касанием.',
-                        actionLabel: 'Добавить сниппет',
+                        icon: HugeIcons.strokeRoundedFlash,
+                        title: 'snippets.empty_title'.tr(),
+                        message: 'snippets.empty_msg'.tr(),
+                        actionLabel: 'snippets.add'.tr(),
                         onAction: () => _edit(context),
                       )
                     : ListView.separated(
@@ -122,14 +124,14 @@ class SnippetsScreen extends StatelessWidget {
                                 padding: const EdgeInsets.all(14),
                                 child: Row(
                                   children: [
-                                    GradientIcon(icon: Icons.bolt_rounded, color: AppColors.yellow, size: 40),
+                                    GradientIcon(icon: HugeIcons.strokeRoundedFlash, color: AppColors.yellow, size: 40),
                                     const SizedBox(width: 14),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            snippet.name.isEmpty ? 'Без названия' : snippet.name,
+                                            snippet.name.isEmpty ? 'snippets.untitled'.tr() : snippet.name,
                                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                                           ),
                                           const SizedBox(height: 4),
@@ -143,7 +145,7 @@ class SnippetsScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Icon(
-                                      target != null ? Icons.play_arrow_rounded : Icons.copy_rounded,
+                                      target != null ? HugeIcons.strokeRoundedPlay : HugeIcons.strokeRoundedCopy01,
                                       color: target != null ? AppColors.green : AppColors.textDim,
                                     ),
                                   ],
@@ -186,7 +188,7 @@ class _SnippetSheetState extends State<_SnippetSheet> {
   Future<void> _save() async {
     final command = _command.text.trim();
     if (command.isEmpty) {
-      setState(() => _error = 'Введите команду');
+      setState(() => _error = 'snippets.enter_command'.tr());
       return;
     }
     await AppStore.instance.saveSnippet(
@@ -204,8 +206,8 @@ class _SnippetSheetState extends State<_SnippetSheet> {
       return;
     }
     final ok = await confirmAction(
-      title: 'Удалить сниппет?',
-      message: '«${snippet.name.isEmpty ? snippet.command : snippet.name}» будет удалён.',
+      title: 'snippets.delete_title'.tr(),
+      message: 'snippets.delete_msg'.tr(namedArgs: {'name': snippet.name.isEmpty ? snippet.command : snippet.name}),
     );
     if (!ok) {
       return;
@@ -229,7 +231,7 @@ class _SnippetSheetState extends State<_SnippetSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                editing ? 'Изменить сниппет' : 'Новый сниппет',
+                editing ? 'snippets.edit_title'.tr() : 'snippets.new_title'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 16),
@@ -237,7 +239,7 @@ class _SnippetSheetState extends State<_SnippetSheet> {
                 controller: _name,
                 autofocus: !editing,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(labelText: 'Название', prefixIcon: Icon(Icons.label_outline_rounded)),
+                decoration: InputDecoration(labelText: 'keys.name'.tr(), prefixIcon: const Icon(HugeIcons.strokeRoundedTag01)),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -253,7 +255,7 @@ class _SnippetSheetState extends State<_SnippetSheet> {
                   }
                 },
                 decoration: InputDecoration(
-                  labelText: 'Команда',
+                  labelText: 'snippets.command'.tr(),
                   hintText: 'sudo systemctl restart nginx',
                   errorText: _error,
                   alignLabelWithHint: true,
@@ -271,11 +273,11 @@ class _SnippetSheetState extends State<_SnippetSheet> {
                           side: BorderSide(color: AppColors.red.withValues(alpha: 0.5)),
                         ),
                         onPressed: _delete,
-                        child: const Icon(Icons.delete_outline_rounded),
+                        child: const Icon(HugeIcons.strokeRoundedDelete02),
                       ),
                     ),
                   Expanded(
-                    child: FilledButton(onPressed: _save, child: const Text('Сохранить')),
+                    child: FilledButton(onPressed: _save, child: Text('common.save'.tr())),
                   ),
                 ],
               ),

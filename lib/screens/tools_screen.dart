@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -8,7 +9,6 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import 'extra_tools_screen.dart';
 import 'local_terminal_screen.dart';
-import 'logs_screen.dart';
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
@@ -16,23 +16,21 @@ class ToolsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tools = <_Tool>[
-      _Tool('IP-калькулятор', 'Подсеть, маска, диапазон', HugeIcons.strokeRoundedSecuredNetwork, AppColors.accent,
+      _Tool('tools.ipcalc'.tr(), 'tools.ipcalc_sub'.tr(), HugeIcons.strokeRoundedSecuredNetwork, AppColors.accent,
           () => const IpCalculatorScreen()),
-      _Tool('Справочник портов', 'Частые порты и службы', HugeIcons.strokeRoundedElearningExchange, AppColors.green,
+      _Tool('tools.ports'.tr(), 'tools.ports_sub'.tr(), HugeIcons.strokeRoundedElearningExchange, AppColors.green,
           () => const PortReferenceScreen()),
-      _Tool('DNS и порты', 'Lookup и проверка TCP', HugeIcons.strokeRoundedGlobe02, const Color(0xFF2DD4BF),
+      _Tool('tools.dns'.tr(), 'tools.dns_sub'.tr(), HugeIcons.strokeRoundedGlobe02, const Color(0xFF2DD4BF),
           () => const NetProbeScreen()),
-      _Tool('Кодировщик', 'Base64, URL, JWT', HugeIcons.strokeRoundedSourceCode, AppColors.accent,
+      _Tool('tools.encoder'.tr(), 'tools.encoder_sub'.tr(), HugeIcons.strokeRoundedSourceCode, AppColors.accent,
           () => const EncoderScreen()),
-      _Tool('Хеши', 'MD5, SHA-1/256/512', HugeIcons.strokeRoundedFingerAccess, const Color(0xFFF778BA),
+      _Tool('tools.hashes'.tr(), 'tools.hashes_sub'.tr(), HugeIcons.strokeRoundedFingerAccess, const Color(0xFFF778BA),
           () => const HashScreen()),
-      _Tool('Локальный терминал', 'Оболочка этого устройства', HugeIcons.strokeRoundedCommandLine,
+      _Tool('tools.local_term'.tr(), 'tools.local_term_sub'.tr(), HugeIcons.strokeRoundedCommandLine,
           const Color(0xFFA371F7), () => const LocalTerminalScreen()),
-      _Tool('Логи активности', 'Что делает приложение', HugeIcons.strokeRoundedTask01, AppColors.yellow,
-          () => const LogsScreen()),
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Инструменты')),
+      appBar: AppBar(title: Text('tools.title'.tr())),
       body: GridView.count(
         padding: const EdgeInsets.all(16),
         crossAxisCount: 2,
@@ -109,7 +107,7 @@ class _IpCalculatorScreenState extends State<IpCalculatorScreen> {
   Widget build(BuildContext context) {
     final info = _info;
     return Scaffold(
-      appBar: AppBar(title: const Text('IP-калькулятор')),
+      appBar: AppBar(title: Text('tools.ipcalc'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -117,18 +115,18 @@ class _IpCalculatorScreenState extends State<IpCalculatorScreen> {
             controller: _controller,
             autocorrect: false,
             style: AppFonts.monoStyle(size: 16),
-            decoration: const InputDecoration(
-              labelText: 'IP-адрес / CIDR',
+            decoration: InputDecoration(
+              labelText: 'tools.ip_cidr'.tr(),
               hintText: '10.0.0.5/24',
-              prefixIcon: Icon(Icons.lan_rounded),
+              prefixIcon: const Icon(HugeIcons.strokeRoundedInternet),
             ),
           ),
           const SizedBox(height: 16),
           if (info == null)
             Padding(
-              padding: EdgeInsets.only(top: 40),
+              padding: const EdgeInsets.only(top: 40),
               child: Center(
-                child: Text('Введите IP с маской, например 192.168.0.1/24', style: TextStyle(color: AppColors.textDim)),
+                child: Text('tools.ip_hint'.tr(), style: TextStyle(color: AppColors.textDim)),
               ),
             )
           else
@@ -140,16 +138,16 @@ class _IpCalculatorScreenState extends State<IpCalculatorScreen> {
               ),
               child: Column(
                 children: [
-                  _row('Сеть', '${info.network}/${info.prefix}'),
-                  _row('Маска', info.netmask),
+                  _row('tools.net'.tr(), '${info.network}/${info.prefix}'),
+                  _row('tools.mask'.tr(), info.netmask),
                   _row('Wildcard', info.wildcard),
                   _row('Broadcast', info.broadcast),
-                  _row('Первый хост', info.firstHost),
-                  _row('Последний хост', info.lastHost),
-                  _row('Всего адресов', '${info.totalAddresses}'),
-                  _row('Хостов доступно', '${info.usableHosts}'),
-                  _row('Класс', info.ipClass),
-                  _row('Тип', info.isPrivate ? 'Приватный' : 'Публичный', last: true),
+                  _row('tools.first_host'.tr(), info.firstHost),
+                  _row('tools.last_host'.tr(), info.lastHost),
+                  _row('tools.total_addr'.tr(), '${info.totalAddresses}'),
+                  _row('tools.usable_hosts'.tr(), '${info.usableHosts}'),
+                  _row('tools.class'.tr(), info.ipClass),
+                  _row('tools.type'.tr(), info.isPrivate ? 'tools.private'.tr() : 'tools.public'.tr(), last: true),
                 ],
               ),
             ),
@@ -162,7 +160,7 @@ class _IpCalculatorScreenState extends State<IpCalculatorScreen> {
     return InkWell(
       onTap: () async {
         await Clipboard.setData(ClipboardData(text: value));
-        showSnack('Скопировано: $value');
+        showSnack('common.copied_value'.tr(namedArgs: {'value': value}));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -174,7 +172,7 @@ class _IpCalculatorScreenState extends State<IpCalculatorScreen> {
             Expanded(child: Text(label, style: TextStyle(color: AppColors.textDim, fontSize: 13.5))),
             Text(value, style: AppFonts.monoStyle(size: 14, weight: FontWeight.w600)),
             const SizedBox(width: 8),
-            Icon(Icons.copy_rounded, size: 15, color: AppColors.textDim),
+            Icon(HugeIcons.strokeRoundedCopy01, size: 15, color: AppColors.textDim),
           ],
         ),
       ),
@@ -205,7 +203,7 @@ class _PortReferenceScreenState extends State<PortReferenceScreen> {
                 p.proto.toLowerCase().contains(q))
             .toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Справочник портов')),
+      appBar: AppBar(title: Text('tools.ports'.tr())),
       body: Column(
         children: [
           Padding(
@@ -213,9 +211,9 @@ class _PortReferenceScreenState extends State<PortReferenceScreen> {
             child: TextField(
               autocorrect: false,
               onChanged: (value) => setState(() => _query = value),
-              decoration: const InputDecoration(
-                hintText: 'Поиск: порт, служба (ssh, 443, mysql)',
-                prefixIcon: Icon(Icons.search_rounded),
+              decoration: InputDecoration(
+                hintText: 'tools.ports_search'.tr(),
+                prefixIcon: const Icon(HugeIcons.strokeRoundedSearch01),
               ),
             ),
           ),
@@ -230,7 +228,7 @@ class _PortReferenceScreenState extends State<PortReferenceScreen> {
                   borderRadius: BorderRadius.circular(14),
                   onTap: () async {
                     await Clipboard.setData(ClipboardData(text: '${p.port}'));
-                    showSnack('Скопирован порт ${p.port}');
+                    showSnack('tools.port_copied'.tr(namedArgs: {'port': '${p.port}'}));
                   },
                   child: Container(
                     padding: const EdgeInsets.all(14),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,11 +131,11 @@ class AppStore extends ChangeNotifier {
     final snippetsRaw = _prefs.getString(_snippetsKey);
     if (snippetsRaw == null) {
       _snippets = [
-        Snippet(id: newId(), name: 'Процессы', command: 'htop || top'),
-        Snippet(id: newId(), name: 'Диски', command: 'df -h'),
-        Snippet(id: newId(), name: 'Память', command: 'free -h'),
-        Snippet(id: newId(), name: 'Открытые порты', command: 'ss -tulpn'),
-        Snippet(id: newId(), name: 'Системный журнал', command: 'journalctl -n 100 --no-pager'),
+        Snippet(id: newId(), name: 'Processes', command: 'htop || top'),
+        Snippet(id: newId(), name: 'Disks', command: 'df -h'),
+        Snippet(id: newId(), name: 'Memory', command: 'free -h'),
+        Snippet(id: newId(), name: 'Open ports', command: 'ss -tulpn'),
+        Snippet(id: newId(), name: 'System log', command: 'journalctl -n 100 --no-pager'),
       ];
       await _saveSnippets();
     } else {
@@ -256,7 +257,7 @@ class AppStore extends ChangeNotifier {
     final copy = Host(
       id: newId(),
       protocol: host.protocol,
-      label: '$title (копия)',
+      label: 'hosts.copy_suffix'.tr(namedArgs: {'title': title}),
       group: host.group,
       address: host.address,
       port: host.port,

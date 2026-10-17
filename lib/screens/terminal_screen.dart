@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
@@ -59,12 +61,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SheetTitle('Новая вкладка', subtitle: 'Выберите хост для подключения'),
+              SheetTitle('terminal.new_tab'.tr(), subtitle: 'terminal.pick_host'.tr()),
               if (hosts.isEmpty)
                 Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Text(
-                    'Сохранённых хостов нет',
+                    'terminal.no_saved_hosts'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim),
                   ),
@@ -105,12 +107,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
       case 'copy':
         final text = session.selectedText();
         if (text.trim().isEmpty) {
-          showSnack('Сначала выделите текст в терминале', error: true);
+          showSnack('terminal.select_text_first'.tr(), error: true);
           return;
         }
         await Clipboard.setData(ClipboardData(text: text));
         session.controller.clearSelection();
-        showSnack('Скопировано');
+        showSnack('common.copied'.tr());
       case 'snippets':
         if (!mounted) {
           return;
@@ -156,21 +158,21 @@ class _TerminalScreenState extends State<TerminalScreen> {
             titleSpacing: 0,
             title: _buildTabs(manager),
             actions: [
-              IconButton(tooltip: 'Новая вкладка', icon: const Icon(Icons.add_rounded), onPressed: _newTab),
+              IconButton(tooltip: 'terminal.new_tab'.tr(), icon: const Icon(HugeIcons.strokeRoundedAdd01), onPressed: _newTab),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded),
+                icon: const Icon(HugeIcons.strokeRoundedMoreVerticalCircle01),
                 onSelected: (value) => _onMenu(value, session),
                 itemBuilder: (_) => [
-                  _menuItem('paste', Icons.content_paste_rounded, 'Вставить'),
-                  _menuItem('copy', Icons.copy_rounded, 'Копировать выделенное'),
-                  _menuItem('snippets', Icons.bolt_rounded, 'Сниппеты'),
-                  _menuItem('sftp', Icons.folder_copy_outlined, 'SFTP'),
+                  _menuItem('paste', HugeIcons.strokeRoundedClipboard, 'terminal.paste'.tr()),
+                  _menuItem('copy', HugeIcons.strokeRoundedCopy01, 'terminal.copy_selected'.tr()),
+                  _menuItem('snippets', HugeIcons.strokeRoundedFlash, 'nav.snippets'.tr()),
+                  _menuItem('sftp', HugeIcons.strokeRoundedFolder02, 'SFTP'),
                   const PopupMenuDivider(),
-                  _menuItem('bigger', Icons.text_increase_rounded, 'Шрифт крупнее'),
-                  _menuItem('smaller', Icons.text_decrease_rounded, 'Шрифт мельче'),
+                  _menuItem('bigger', HugeIcons.strokeRoundedZoomInArea, 'terminal.font_bigger'.tr()),
+                  _menuItem('smaller', HugeIcons.strokeRoundedZoomOutArea, 'terminal.font_smaller'.tr()),
                   const PopupMenuDivider(),
-                  _menuItem('reconnect', Icons.refresh_rounded, 'Переподключить'),
-                  _menuItem('close', Icons.close_rounded, 'Закрыть сессию', color: AppColors.red),
+                  _menuItem('reconnect', HugeIcons.strokeRoundedRefresh, 'terminal.reconnect'.tr()),
+                  _menuItem('close', HugeIcons.strokeRoundedCancel01, 'terminal.close_session'.tr(), color: AppColors.red),
                 ],
               ),
             ],
@@ -265,7 +267,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                         onTap: () => manager.close(item),
                         child: Padding(
                           padding: EdgeInsets.all(6),
-                          child: Icon(Icons.close_rounded, size: 16, color: AppColors.textDim),
+                          child: Icon(HugeIcons.strokeRoundedCancel01, size: 16, color: AppColors.textDim),
                         ),
                       ),
                     ],
@@ -291,11 +293,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
       ),
       child: Row(
         children: [
-          Icon(failed ? Icons.error_outline_rounded : Icons.link_off_rounded, color: color, size: 20),
+          Icon(failed ? HugeIcons.strokeRoundedAlert02 : HugeIcons.strokeRoundedUnlink01, color: color, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              failed ? (session.error ?? 'Ошибка подключения') : 'Соединение закрыто',
+              failed ? (session.error ?? 'terminal.connect_error'.tr()) : 'terminal.connection_closed'.tr(),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: failed ? AppColors.red : AppColors.text, fontSize: 13),
@@ -303,8 +305,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
           ),
           TextButton.icon(
             onPressed: session.start,
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text('Переподключить'),
+            icon: const Icon(HugeIcons.strokeRoundedRefresh, size: 18),
+            label: Text('terminal.reconnect'.tr()),
           ),
         ],
       ),

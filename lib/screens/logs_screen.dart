@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../nav.dart';
@@ -32,29 +34,29 @@ class LogsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Логи активности'),
+        title: Text('tools.logs'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Копировать всё',
-            icon: const Icon(Icons.copy_all_rounded),
+            tooltip: 'logs.copy_all'.tr(),
+            icon: const Icon(HugeIcons.strokeRoundedCopy01),
             onPressed: () async {
               final text = ActivityLog.instance.exportText();
               if (text.trim().isEmpty) {
-                showSnack('Логи пусты');
+                showSnack('logs.empty_snack'.tr());
                 return;
               }
               await Clipboard.setData(ClipboardData(text: text));
-              showSnack('Логи скопированы');
+              showSnack('logs.copied'.tr());
             },
           ),
           IconButton(
-            tooltip: 'Очистить',
-            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'logs.clear'.tr(),
+            icon: const Icon(HugeIcons.strokeRoundedDelete02),
             onPressed: () async {
               final ok = await confirmAction(
-                title: 'Очистить логи?',
-                message: 'Все записи журнала будут удалены.',
-                confirmLabel: 'Очистить',
+                title: 'logs.clear_title'.tr(),
+                message: 'logs.clear_msg'.tr(),
+                confirmLabel: 'logs.clear'.tr(),
               );
               if (ok) {
                 await ActivityLog.instance.clear();
@@ -68,10 +70,10 @@ class LogsScreen extends StatelessWidget {
         builder: (context, _) {
           final entries = ActivityLog.instance.entries;
           if (entries.isEmpty) {
-            return const EmptyState(
-              icon: Icons.article_rounded,
-              title: 'Журнал пуст',
-              message: 'Здесь появятся события приложения: подключения, VPN, ошибки и действия.',
+            return EmptyState(
+              icon: HugeIcons.strokeRoundedTask01,
+              title: 'logs.empty_title'.tr(),
+              message: 'logs.empty_msg'.tr(),
             );
           }
           return ListView.separated(

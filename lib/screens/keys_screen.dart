@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../models.dart';
@@ -26,17 +28,17 @@ class KeysScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SheetTitle('Новый ключ'),
+            SheetTitle('keys.new_key'.tr()),
             ListTile(
-              leading: const GradientIcon(icon: Icons.auto_awesome_rounded, size: 38),
-              title: const Text('Сгенерировать Ed25519'),
-              subtitle: Text('Быстрый и надёжный современный ключ', style: TextStyle(color: AppColors.textDim)),
+              leading: const GradientIcon(icon: HugeIcons.strokeRoundedSparkles, size: 38),
+              title: Text('keys.generate_ed25519'.tr()),
+              subtitle: Text('keys.generate_sub'.tr(), style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('generate'),
             ),
             ListTile(
-              leading: GradientIcon(icon: Icons.file_download_rounded, color: AppColors.green, size: 38),
-              title: const Text('Импортировать'),
-              subtitle: Text('OpenSSH, RSA или EC в формате PEM', style: TextStyle(color: AppColors.textDim)),
+              leading: GradientIcon(icon: HugeIcons.strokeRoundedDownload04, color: AppColors.green, size: 38),
+              title: Text('keys.import'.tr()),
+              subtitle: Text('keys.import_sub'.tr(), style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('import'),
             ),
             const SizedBox(height: 12),
@@ -56,10 +58,10 @@ class KeysScreen extends StatelessWidget {
 
   Future<void> _generate(BuildContext context) async {
     final name = await promptText(
-      title: 'Новый ключ Ed25519',
-      label: 'Название',
-      initial: 'Ключ ${AppStore.instance.keys.length + 1}',
-      confirmLabel: 'Создать',
+      title: 'keys.new_ed25519'.tr(),
+      label: 'keys.name'.tr(),
+      initial: 'keys.key_n'.tr(namedArgs: {'n': '${AppStore.instance.keys.length + 1}'}),
+      confirmLabel: 'keys.create'.tr(),
     );
     if (name == null || !context.mounted) {
       return;
@@ -80,18 +82,18 @@ class KeysScreen extends StatelessWidget {
       }
       await showPublicKeySheet(context, key);
     } catch (e) {
-      showSnack('Не удалось создать ключ: $e', error: true);
+      showSnack('keys.create_failed'.tr(namedArgs: {'error': '$e'}), error: true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ключи')),
+      appBar: AppBar(title: Text('nav.keys'.tr())),
       floatingActionButton: FloatingActionButton(
         heroTag: 'keys-fab',
         onPressed: () => _showAddMenu(context),
-        child: const Icon(Icons.add_rounded),
+        child: const Icon(HugeIcons.strokeRoundedAdd01),
       ),
       body: ListenableBuilder(
         listenable: AppStore.instance,
@@ -99,11 +101,10 @@ class KeysScreen extends StatelessWidget {
           final keys = AppStore.instance.keys;
           if (keys.isEmpty) {
             return EmptyState(
-              icon: Icons.key_rounded,
-              title: 'Нет SSH-ключей',
-              message:
-                  'Вход по ключу безопаснее и удобнее пароля. Сгенерируйте новый ключ или импортируйте существующий.',
-              actionLabel: 'Добавить ключ',
+              icon: HugeIcons.strokeRoundedKey01,
+              title: 'keys.empty_title'.tr(),
+              message: 'keys.empty_msg'.tr(),
+              actionLabel: 'keys.add'.tr(),
               onAction: () => _showAddMenu(context),
             );
           }
@@ -130,23 +131,22 @@ class _KeyTile extends StatelessWidget {
         await showPublicKeySheet(context, sshKey);
       case 'private':
         final ok = await confirmAction(
-          title: 'Скопировать приватный ключ?',
-          message:
-              'Приватный ключ даёт полный доступ ко всем серверам, где он установлен. Не отправляйте его никому и не храните в открытом виде.',
-          confirmLabel: 'Скопировать',
+          title: 'keys.copy_private_title'.tr(),
+          message: 'keys.copy_private_msg'.tr(),
+          confirmLabel: 'keys.copy'.tr(),
         );
         if (!ok) {
           return;
         }
         final pem = await AppStore.instance.readPrivateKey(sshKey.id);
         if (pem == null) {
-          showSnack('Приватный ключ не найден', error: true);
+          showSnack('keys.private_not_found'.tr(), error: true);
           return;
         }
         await Clipboard.setData(ClipboardData(text: pem));
-        showSnack('Приватный ключ скопирован');
+        showSnack('keys.private_copied'.tr());
       case 'rename':
-        final name = await promptText(title: 'Переименовать ключ', label: 'Название', initial: sshKey.name);
+        final name = await promptText(title: 'keys.rename'.tr(), label: 'keys.name'.tr(), initial: sshKey.name);
         if (name == null) {
           return;
         }
@@ -154,16 +154,16 @@ class _KeyTile extends StatelessWidget {
       case 'delete':
         final used = AppStore.instance.hostsUsingKey(sshKey.id);
         final ok = await confirmAction(
-          title: 'Удалить ключ «${sshKey.name}»?',
+          title: 'keys.delete_title'.tr(namedArgs: {'name': sshKey.name}),
           message: used > 0
-              ? 'Ключ используется в хостах: $used. Они будут переключены на вход по паролю. Действие нельзя отменить.'
-              : 'Приватный ключ будет удалён с устройства. Действие нельзя отменить.',
+              ? 'keys.delete_used_msg'.tr(namedArgs: {'count': '$used'})
+              : 'keys.delete_msg'.tr(),
         );
         if (!ok) {
           return;
         }
         await AppStore.instance.deleteKey(sshKey.id);
-        showSnack('Ключ удалён');
+        showSnack('keys.deleted'.tr());
     }
   }
 
@@ -180,7 +180,7 @@ class _KeyTile extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
           child: Row(
             children: [
-              GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 42),
+              GradientIcon(icon: HugeIcons.strokeRoundedKey01, color: AppColors.yellow, size: 42),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -191,33 +191,35 @@ class _KeyTile extends StatelessWidget {
                     Text(sshKey.type, style: AppFonts.monoStyle(size: 12, color: AppColors.textDim)),
                     const SizedBox(height: 2),
                     Text(
-                      used > 0 ? 'Создан $created · хостов: $used' : 'Создан $created',
+                      used > 0
+                          ? 'keys.created_used'.tr(namedArgs: {'date': created, 'count': '$used'})
+                          : 'keys.created'.tr(namedArgs: {'date': created}),
                       style: TextStyle(color: AppColors.textDim, fontSize: 12),
                     ),
                   ],
                 ),
               ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+                icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
                 onSelected: (value) => _onMenu(context, value),
                 itemBuilder: (_) => [
                   PopupMenuItem(
                     value: 'public',
-                    child: ListTile(leading: Icon(Icons.public_rounded), title: Text('Публичный ключ')),
+                    child: ListTile(leading: const Icon(HugeIcons.strokeRoundedGlobe02), title: Text('keys.public_key'.tr())),
                   ),
                   PopupMenuItem(
                     value: 'private',
-                    child: ListTile(leading: Icon(Icons.lock_rounded), title: Text('Копировать приватный')),
+                    child: ListTile(leading: const Icon(HugeIcons.strokeRoundedSquareLock02), title: Text('keys.copy_private'.tr())),
                   ),
                   PopupMenuItem(
                     value: 'rename',
-                    child: ListTile(leading: Icon(Icons.edit_rounded), title: Text('Переименовать')),
+                    child: ListTile(leading: const Icon(HugeIcons.strokeRoundedEdit02), title: Text('keys.rename'.tr())),
                   ),
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
-                      title: Text('Удалить', style: TextStyle(color: AppColors.red)),
+                      leading: Icon(HugeIcons.strokeRoundedDelete02, color: AppColors.red),
+                      title: Text('common.delete'.tr(), style: TextStyle(color: AppColors.red)),
                     ),
                   ),
                 ],
@@ -245,7 +247,7 @@ Future<void> showPublicKeySheet(BuildContext context, SshKey key) async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SheetTitle(key.name, subtitle: 'Публичный ключ · ${key.type}'),
+              SheetTitle(key.name, subtitle: 'keys.public_key_sub'.tr(namedArgs: {'type': key.type})),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -256,22 +258,22 @@ Future<void> showPublicKeySheet(BuildContext context, SshKey key) async {
                     FilledButton.icon(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: key.publicKey));
-                        showSnack('Публичный ключ скопирован');
+                        showSnack('keys.public_copied'.tr());
                       },
-                      icon: const Icon(Icons.copy_rounded),
-                      label: const Text('Копировать'),
+                      icon: const Icon(HugeIcons.strokeRoundedCopy01),
+                      label: Text('keys.copy'.tr()),
                     ),
                     const SizedBox(height: 20),
-                    const FieldLabel('Добавьте ключ на сервер командой'),
+                    FieldLabel('keys.add_to_server'.tr()),
                     MonoBox(installCommand),
                     const SizedBox(height: 10),
                     OutlinedButton.icon(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: installCommand));
-                        showSnack('Команда скопирована');
+                        showSnack('keys.command_copied'.tr());
                       },
-                      icon: const Icon(Icons.terminal_rounded),
-                      label: const Text('Копировать команду'),
+                      icon: const Icon(HugeIcons.strokeRoundedCommandLine),
+                      label: Text('keys.copy_command'.tr()),
                     ),
                     if (session != null) ...[
                       const SizedBox(height: 10),
@@ -279,10 +281,10 @@ Future<void> showPublicKeySheet(BuildContext context, SshKey key) async {
                         onPressed: () {
                           session.run(fullInstall);
                           Navigator.of(sheetContext).pop();
-                          showSnack('Ключ добавлен на ${session.host.title}');
+                          showSnack('keys.installed_on'.tr(namedArgs: {'host': session.host.title}));
                         },
-                        icon: Icon(Icons.bolt_rounded, color: AppColors.yellow),
-                        label: Text('Установить на ${session.host.title}'),
+                        icon: Icon(HugeIcons.strokeRoundedFlash, color: AppColors.yellow),
+                        label: Text('keys.install_on'.tr(namedArgs: {'host': session.host.title})),
                       ),
                     ],
                   ],
@@ -339,7 +341,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
 
   Future<void> _fromFile() async {
     try {
-      final files = await FilePicker.pickFiles(dialogTitle: 'Выберите приватный ключ');
+      final files = await FilePicker.pickFiles(dialogTitle: 'keys.pick_private'.tr());
       if (!mounted || files.isEmpty) {
         return;
       }
@@ -349,7 +351,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
         return;
       }
       if (bytes.length > 64 * 1024) {
-        setState(() => _error = 'Файл слишком большой для SSH-ключа');
+        setState(() => _error = 'keys.file_too_big'.tr());
         return;
       }
       _pem.text = utf8.decode(bytes, allowMalformed: true);
@@ -360,7 +362,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
       if (!mounted) {
         return;
       }
-      setState(() => _error = 'Не удалось прочитать файл: $e');
+      setState(() => _error = 'keys.file_read_failed'.tr(namedArgs: {'error': '$e'}));
     }
   }
 
@@ -371,7 +373,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
     }
     final text = data?.text ?? '';
     if (text.trim().isEmpty) {
-      setState(() => _error = 'Буфер обмена пуст');
+      setState(() => _error = 'keys.clipboard_empty'.tr());
       return;
     }
     _pem.text = text;
@@ -379,18 +381,18 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
 
   Future<void> _save() async {
     final pem = _pem.text.trim();
-    final name = _name.text.trim().isEmpty ? 'Импортированный ключ' : _name.text.trim();
+    final name = _name.text.trim().isEmpty ? 'keys.imported_key'.tr() : _name.text.trim();
     if (pem.isEmpty) {
-      setState(() => _error = 'Вставьте приватный ключ');
+      setState(() => _error = 'keys.paste_private'.tr());
       return;
     }
     if (!pem.contains('PRIVATE KEY')) {
-      setState(() => _error = 'Это не приватный ключ в формате PEM');
+      setState(() => _error = 'keys.not_pem'.tr());
       return;
     }
     final passphrase = _encrypted ? _passphrase.text : null;
     if (_encrypted && (passphrase == null || passphrase.isEmpty)) {
-      setState(() => _error = 'Ключ зашифрован — введите парольную фразу');
+      setState(() => _error = 'keys.need_passphrase'.tr());
       return;
     }
     setState(() {
@@ -410,7 +412,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
       if (!mounted) {
         return;
       }
-      showSnack('Ключ импортирован');
+      showSnack('keys.imported'.tr());
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) {
@@ -420,8 +422,8 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
       setState(() {
         _busy = false;
         _error = _encrypted && (text.contains('passphrase') || text.contains('Decrypt') || text.contains('decrypt'))
-            ? 'Неверная парольная фраза'
-            : 'Не удалось прочитать ключ: $text';
+            ? 'keys.wrong_passphrase'.tr()
+            : 'keys.key_read_failed'.tr(namedArgs: {'error': text});
       });
     }
   }
@@ -430,7 +432,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Импорт ключа'),
+        title: Text('keys.import_title'.tr()),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -439,7 +441,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
               onPressed: _busy ? null : _save,
               child: _busy
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Сохранить'),
+                  : Text('common.save'.tr()),
             ),
           ),
         ],
@@ -449,7 +451,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
         children: [
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Название', prefixIcon: Icon(Icons.label_outline_rounded)),
+            decoration: InputDecoration(labelText: 'keys.name'.tr(), prefixIcon: const Icon(HugeIcons.strokeRoundedTag01)),
           ),
           const SizedBox(height: 16),
           Row(
@@ -457,16 +459,16 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _busy ? null : _fromFile,
-                  icon: const Icon(Icons.folder_open_rounded),
-                  label: const Text('Из файла'),
+                  icon: const Icon(HugeIcons.strokeRoundedFolderOpen),
+                  label: Text('keys.from_file'.tr()),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _busy ? null : _fromClipboard,
-                  icon: const Icon(Icons.content_paste_rounded),
-                  label: const Text('Из буфера'),
+                  icon: const Icon(HugeIcons.strokeRoundedClipboard),
+                  label: Text('keys.from_clipboard'.tr()),
                 ),
               ),
             ],
@@ -493,11 +495,11 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
               autocorrect: false,
               enableSuggestions: false,
               decoration: InputDecoration(
-                labelText: 'Парольная фраза',
-                helperText: 'Ключ зашифрован',
-                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                labelText: 'keys.passphrase'.tr(),
+                helperText: 'keys.encrypted'.tr(),
+                prefixIcon: const Icon(HugeIcons.strokeRoundedSquareLock01),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+                  icon: Icon(_obscure ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -508,7 +510,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.error_outline_rounded, color: AppColors.red, size: 18),
+                Icon(HugeIcons.strokeRoundedAlert02, color: AppColors.red, size: 18),
                 const SizedBox(width: 8),
                 Expanded(child: Text(_error!, style: TextStyle(color: AppColors.red))),
               ],
@@ -516,7 +518,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
           ],
           const SizedBox(height: 20),
           Text(
-            'Приватный ключ хранится только в защищённом хранилище устройства и никуда не передаётся.',
+            'keys.security_note'.tr(),
             style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
           ),
         ],

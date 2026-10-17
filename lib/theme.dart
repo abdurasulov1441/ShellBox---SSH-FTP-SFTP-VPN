@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:xterm/xterm.dart';
 
 class AppPalette {
@@ -101,7 +102,7 @@ class AppTheme {
 
   static ThemeData build(AppPalette p) {
     final base = ThemeData(brightness: p.brightness, useMaterial3: true);
-    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(bodyColor: p.text, displayColor: p.text);
+    final textTheme = GoogleFonts.poppinsTextTheme(base.textTheme).apply(bodyColor: p.text, displayColor: p.text);
     final baseScheme = p.brightness == Brightness.dark ? const ColorScheme.dark() : const ColorScheme.light();
     final scheme = baseScheme.copyWith(
       primary: p.accent,
@@ -130,6 +131,12 @@ class AppTheme {
       primaryTextTheme: textTheme,
       dividerColor: p.border,
       splashFactory: InkSparkle.splashFactory,
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (context) =>
+            Icon(HugeIcons.strokeRoundedArrowLeft01, color: IconTheme.of(context).color),
+        closeButtonIconBuilder: (context) =>
+            Icon(HugeIcons.strokeRoundedCancel01, color: IconTheme.of(context).color),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: p.bg,
         surfaceTintColor: Colors.transparent,

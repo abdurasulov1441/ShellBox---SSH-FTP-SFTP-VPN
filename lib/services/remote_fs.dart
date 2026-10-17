@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../models.dart';
@@ -93,7 +94,7 @@ class SftpFs implements RemoteFs {
   SftpClient get _requireSftp {
     final sftp = _sftp;
     if (sftp == null) {
-      throw const ConnectError('Нет подключения');
+      throw ConnectError('conn.no_connection'.tr());
     }
     return sftp;
   }
@@ -205,7 +206,7 @@ class FtpFs implements RemoteFs {
   FtpClient get _requireFtp {
     final ftp = _ftp;
     if (ftp == null) {
-      throw const ConnectError('Нет подключения');
+      throw ConnectError('conn.no_connection'.tr());
     }
     return ftp;
   }
@@ -238,7 +239,7 @@ class FtpFs implements RemoteFs {
       } else {
         reply = await askPassword(host);
         if (reply == null) {
-          throw const ConnectError('Вход отменён');
+          throw ConnectError('conn.login_cancelled'.tr());
         }
         password = reply.password;
       }

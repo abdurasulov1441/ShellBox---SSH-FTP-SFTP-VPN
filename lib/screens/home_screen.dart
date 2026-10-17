@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -65,11 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onCenterTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(builder: (_) => const HostEditorScreen()),
         ),
-        items: const [
-          NavItem(icon: HugeIcons.strokeRoundedServerStack01, label: 'Хосты'),
-          NavItem(icon: HugeIcons.strokeRoundedKey01, label: 'Ключи'),
-          NavItem(icon: HugeIcons.strokeRoundedFlash, label: 'Сниппеты'),
-          NavItem(icon: HugeIcons.strokeRoundedSettings02, label: 'Настройки'),
+        items: [
+          NavItem(icon: HugeIcons.strokeRoundedServerStack01, label: 'nav.hosts'.tr()),
+          NavItem(icon: HugeIcons.strokeRoundedKey01, label: 'nav.keys'.tr()),
+          NavItem(icon: HugeIcons.strokeRoundedFlash, label: 'nav.snippets'.tr()),
+          NavItem(icon: HugeIcons.strokeRoundedSettings02, label: 'nav.settings'.tr()),
         ],
       ),
     );
@@ -105,7 +106,7 @@ class _ActiveSessionsBar extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Активные сессии: $total',
+                    'home.active_sessions'.tr(namedArgs: {'count': '$total'}),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -113,13 +114,13 @@ class _ActiveSessionsBar extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: Text(
-                      'онлайн $connected',
+                      'home.online'.tr(namedArgs: {'count': '$connected'}),
                       style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
                     ),
                   ),
-                Icon(Icons.terminal_rounded, color: AppColors.accent, size: 20),
+                Icon(HugeIcons.strokeRoundedCommandLine, color: AppColors.accent, size: 20),
                 const SizedBox(width: 4),
-                Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+                Icon(HugeIcons.strokeRoundedArrowRight01, color: AppColors.textDim),
               ],
             ),
           ),

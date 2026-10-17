@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -29,7 +30,7 @@ class AuthService extends ChangeNotifier {
     if (name != null && name.trim().isNotEmpty) {
       return name;
     }
-    return u.email ?? 'Пользователь';
+    return u.email ?? 'auth.user'.tr();
   }
 
   String get email => user?.email ?? '';
@@ -55,31 +56,31 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
     try {
       if (!GoogleSignIn.instance.supportsAuthenticate()) {
-        _error = 'Вход через Google недоступен на этом устройстве';
+        _error = 'auth.google_unavailable'.tr();
         return false;
       }
       final account = await GoogleSignIn.instance.authenticate();
       final idToken = account.authentication.idToken;
       if (idToken == null) {
-        _error = 'Не удалось получить токен Google';
+        _error = 'auth.no_token'.tr();
         return false;
       }
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       await FirebaseAuth.instance.signInWithCredential(credential);
-      ActivityLog.instance.success('Аккаунт', 'Вход через Google: $email');
+      ActivityLog.instance.success('settings.account'.tr(), 'auth.log_signed_in'.tr(namedArgs: {'email': email}));
       return true;
     } on GoogleSignInException catch (e) {
       if (e.code != GoogleSignInExceptionCode.canceled) {
-        _error = 'Не удалось войти через Google';
-        ActivityLog.instance.error('Аккаунт', 'Ошибка Google: ${e.code.name}');
+        _error = 'auth.signin_failed'.tr();
+        ActivityLog.instance.error('settings.account'.tr(), 'auth.log_google_error'.tr(namedArgs: {'code': e.code.name}));
       }
       return false;
     } on FirebaseAuthException catch (e) {
-      _error = e.message ?? 'Ошибка авторизации';
-      ActivityLog.instance.error('Аккаунт', 'Firebase: ${e.code}');
+      _error = e.message ?? 'auth.auth_error'.tr();
+      ActivityLog.instance.error('settings.account'.tr(), 'Firebase: ${e.code}');
       return false;
     } catch (_) {
-      _error = 'Ошибка входа';
+      _error = 'auth.signin_error'.tr();
       return false;
     } finally {
       _busy = false;
@@ -94,7 +95,7 @@ class AuthService extends ChangeNotifier {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (_) {}
-    ActivityLog.instance.info('Аккаунт', 'Выход из аккаунта');
+    ActivityLog.instance.info('settings.account'.tr(), 'auth.log_signed_out'.tr());
     notifyListeners();
   }
 }

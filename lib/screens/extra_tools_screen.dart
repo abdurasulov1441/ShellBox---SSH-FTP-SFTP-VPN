@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../nav.dart';
@@ -58,7 +60,7 @@ class _EncoderScreenState extends State<EncoderScreen> {
           out = _decodeJwt(text.trim());
       }
     } catch (_) {
-      err = 'Не удалось обработать ввод';
+      err = 'enc.process_failed'.tr();
     }
     setState(() {
       _output = out;
@@ -87,7 +89,7 @@ class _EncoderScreenState extends State<EncoderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Кодировщик')),
+      appBar: AppBar(title: Text('tools.encoder'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -104,9 +106,9 @@ class _EncoderScreenState extends State<EncoderScreen> {
           if (_mode != _EncMode.jwt)
             Row(
               children: [
-                Expanded(child: _ModeChip(label: 'Кодировать', active: !_decode, onTap: () => _setDecode(false))),
+                Expanded(child: _ModeChip(label: 'enc.encode'.tr(), active: !_decode, onTap: () => _setDecode(false))),
                 const SizedBox(width: 10),
-                Expanded(child: _ModeChip(label: 'Декодировать', active: _decode, onTap: () => _setDecode(true))),
+                Expanded(child: _ModeChip(label: 'enc.decode'.tr(), active: _decode, onTap: () => _setDecode(true))),
               ],
             ),
           if (_mode != _EncMode.jwt) const SizedBox(height: 14),
@@ -116,7 +118,7 @@ class _EncoderScreenState extends State<EncoderScreen> {
             maxLines: 5,
             style: AppFonts.monoStyle(size: 14),
             decoration: InputDecoration(
-              labelText: _mode == _EncMode.jwt ? 'JWT-токен' : 'Входной текст',
+              labelText: _mode == _EncMode.jwt ? 'enc.jwt_token'.tr() : 'enc.input_text'.tr(),
               alignLabelWithHint: true,
             ),
           ),
@@ -176,7 +178,7 @@ class _HashScreenState extends State<HashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Хеши')),
+      appBar: AppBar(title: Text('tools.hashes'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -185,13 +187,13 @@ class _HashScreenState extends State<HashScreen> {
             autocorrect: false,
             maxLines: 4,
             style: AppFonts.monoStyle(size: 14),
-            decoration: const InputDecoration(labelText: 'Текст для хеширования', alignLabelWithHint: true),
+            decoration: InputDecoration(labelText: 'enc.text_to_hash'.tr(), alignLabelWithHint: true),
           ),
           const SizedBox(height: 16),
           if (_hashes.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 40),
-              child: Center(child: Text('Введите текст выше', style: TextStyle(color: AppColors.textDim))),
+              child: Center(child: Text('enc.enter_text_above'.tr(), style: TextStyle(color: AppColors.textDim))),
             )
           else
             for (final e in _hashes.entries)
@@ -243,7 +245,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
       final result = await InternetAddress.lookup(host).timeout(const Duration(seconds: 6));
       setState(() => _addresses = result.map((a) => a.address).toList());
     } catch (_) {
-      setState(() => _dnsError = 'Не удалось разрешить имя');
+      setState(() => _dnsError = 'enc.dns_failed'.tr());
     } finally {
       if (mounted) {
         setState(() => _busy = false);
@@ -255,7 +257,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
     final host = _host.text.trim();
     final port = int.tryParse(_port.text.trim());
     if (host.isEmpty || port == null || port < 1 || port > 65535 || _busy) {
-      setState(() => _tcpResult = 'Укажите хост и порт (1–65535)');
+      setState(() => _tcpResult = 'enc.host_port_req'.tr());
       return;
     }
     setState(() {
@@ -269,13 +271,13 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
       socket.destroy();
       setState(() {
         _tcpOpen = true;
-        _tcpResult = 'Порт $port открыт · ${watch.elapsedMilliseconds} мс';
+        _tcpResult = 'enc.port_open'.tr(namedArgs: {'port': '$port', 'ms': '${watch.elapsedMilliseconds}'});
       });
     } catch (_) {
       watch.stop();
       setState(() {
         _tcpOpen = false;
-        _tcpResult = 'Порт $port закрыт или недоступен';
+        _tcpResult = 'enc.port_closed'.tr(namedArgs: {'port': '$port'});
       });
     } finally {
       if (mounted) {
@@ -287,7 +289,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('DNS и порты')),
+      appBar: AppBar(title: Text('tools.dns'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -296,7 +298,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
             autocorrect: false,
             keyboardType: TextInputType.url,
             style: AppFonts.monoStyle(size: 15),
-            decoration: const InputDecoration(labelText: 'Хост или домен', prefixIcon: Icon(Icons.dns_rounded)),
+            decoration: InputDecoration(labelText: 'enc.host_or_domain'.tr(), prefixIcon: const Icon(HugeIcons.strokeRoundedDatabase)),
           ),
           const SizedBox(height: 12),
           Row(
@@ -304,7 +306,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: _busy ? null : _lookup,
-                  icon: const Icon(Icons.search_rounded, size: 18),
+                  icon: const Icon(HugeIcons.strokeRoundedSearch01, size: 18),
                   label: const Text('DNS lookup'),
                 ),
               ),
@@ -328,7 +330,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
                     InkWell(
                       onTap: () async {
                         await Clipboard.setData(ClipboardData(text: _addresses[i]));
-                        showSnack('Скопировано: ${_addresses[i]}');
+                        showSnack('common.copied_value'.tr(namedArgs: {'value': _addresses[i]}));
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -338,7 +340,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
                         child: Row(
                           children: [
                             Expanded(child: Text(_addresses[i], style: AppFonts.monoStyle(size: 14))),
-                            Icon(Icons.copy_rounded, size: 15, color: AppColors.textDim),
+                            Icon(HugeIcons.strokeRoundedCopy01, size: 15, color: AppColors.textDim),
                           ],
                         ),
                       ),
@@ -348,7 +350,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
             ),
           ],
           const SizedBox(height: 24),
-          const SectionHeader('Проверка порта (TCP)', padding: EdgeInsets.only(bottom: 10)),
+          SectionHeader('enc.tcp_check'.tr(), padding: const EdgeInsets.only(bottom: 10)),
           Row(
             children: [
               Expanded(
@@ -358,7 +360,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   style: AppFonts.monoStyle(size: 15),
-                  decoration: const InputDecoration(labelText: 'Порт'),
+                  decoration: InputDecoration(labelText: 'editor.port'.tr()),
                 ),
               ),
               const SizedBox(width: 12),
@@ -370,8 +372,8 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
                     onPressed: _busy ? null : _checkPort,
                     icon: _busy
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.network_check_rounded, size: 18),
-                    label: const Text('Проверить'),
+                        : const Icon(HugeIcons.strokeRoundedWifiConnected01, size: 18),
+                    label: Text('enc.check'.tr()),
                   ),
                 ),
               ),
@@ -387,7 +389,7 @@ class _NetProbeScreenState extends State<NetProbeScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(_tcpOpen ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                  Icon(_tcpOpen ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedCancelCircle,
                       color: _tcpOpen ? AppColors.green : AppColors.red, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
@@ -454,7 +456,7 @@ class _OutputCard extends StatelessWidget {
     if (text.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 30),
-        child: Center(child: Text('Результат появится здесь', style: TextStyle(color: AppColors.textDim))),
+        child: Center(child: Text('enc.result_here'.tr(), style: TextStyle(color: AppColors.textDim))),
       );
     }
     return Container(
@@ -475,10 +477,10 @@ class _OutputCard extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: text));
-                showSnack('Скопировано');
+                showSnack('common.copied'.tr());
               },
-              icon: const Icon(Icons.copy_rounded, size: 16),
-              label: const Text('Копировать'),
+              icon: const Icon(HugeIcons.strokeRoundedCopy01, size: 16),
+              label: Text('keys.copy'.tr()),
             ),
           ),
         ],
@@ -499,7 +501,7 @@ class _HashCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       onTap: () async {
         await Clipboard.setData(ClipboardData(text: value));
-        showSnack('$algo скопирован');
+        showSnack('enc.hash_copied'.tr(namedArgs: {'algo': algo}));
       },
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -515,7 +517,7 @@ class _HashCard extends StatelessWidget {
               children: [
                 Text(algo, style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w700, fontSize: 13)),
                 const Spacer(),
-                Icon(Icons.copy_rounded, size: 14, color: AppColors.textDim),
+                Icon(HugeIcons.strokeRoundedCopy01, size: 14, color: AppColors.textDim),
               ],
             ),
             const SizedBox(height: 6),

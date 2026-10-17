@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'store.dart';
@@ -21,7 +22,7 @@ class AppLock {
   static Future<bool> authenticateBiometric() async {
     try {
       return await _auth.authenticate(
-        localizedReason: 'Разблокируйте ShellBox',
+        localizedReason: 'lock.biometric_reason'.tr(),
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );

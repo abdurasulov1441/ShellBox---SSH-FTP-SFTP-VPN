@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dartssh2/dartssh2.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:xterm/xterm.dart';
 
@@ -58,7 +59,7 @@ class TerminalSession extends ChangeNotifier {
     ctrl = false;
     alt = false;
     _notify();
-    terminal.write('\x1b[90mПодключение к ${host.subtitle}…\x1b[0m\r\n');
+    terminal.write('\x1b[90m${'files.connecting'.tr(namedArgs: {'host': host.subtitle})}\x1b[0m\r\n');
     try {
       final client = await SshConnector.connect(
         host,
@@ -130,7 +131,7 @@ class TerminalSession extends ChangeNotifier {
     } else {
       state = SessionState.closed;
       error = null;
-      terminal.write('\r\n\x1b[90mСоединение закрыто\x1b[0m\r\n');
+      terminal.write('\r\n\x1b[90m${'terminal.connection_closed'.tr()}\x1b[0m\r\n');
     }
     _notify();
   }

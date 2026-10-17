@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../models.dart';
 import '../nav.dart';
@@ -36,7 +38,7 @@ Future<String?> promptText({
   String label = '',
   String initial = '',
   String hint = '',
-  String confirmLabel = 'Сохранить',
+  String? confirmLabel,
   bool mono = false,
 }) async {
   final context = navigatorKey.currentContext;
@@ -50,7 +52,7 @@ Future<String?> promptText({
       label: label,
       initial: initial,
       hint: hint,
-      confirmLabel: confirmLabel,
+      confirmLabel: confirmLabel ?? 'common.save'.tr(),
       mono: mono,
     ),
   );
@@ -59,7 +61,7 @@ Future<String?> promptText({
 Future<bool> confirmAction({
   required String title,
   required String message,
-  String confirmLabel = 'Удалить',
+  String? confirmLabel,
   bool destructive = true,
 }) async {
   final context = navigatorKey.currentContext;
@@ -74,12 +76,12 @@ Future<bool> confirmAction({
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('common.cancel'.tr(), style: TextStyle(color: AppColors.textDim)),
         ),
         FilledButton(
           style: destructive ? FilledButton.styleFrom(backgroundColor: AppColors.red) : null,
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(confirmLabel),
+          child: Text(confirmLabel ?? 'common.delete'.tr()),
         ),
       ],
     ),
@@ -102,12 +104,12 @@ class _HostKeyDialog extends StatelessWidget {
       child: AlertDialog(
         icon: Center(
           child: GradientIcon(
-            icon: changed ? Icons.gpp_bad_rounded : Icons.verified_user_rounded,
+            icon: changed ? HugeIcons.strokeRoundedSecurityBlock : HugeIcons.strokeRoundedSecurityCheck,
             color: color,
             size: 52,
           ),
         ),
-        title: Text(changed ? 'Ключ сервера изменился!' : 'Новый сервер', textAlign: TextAlign.center),
+        title: Text(changed ? 'hostkey.changed_title'.tr() : 'hostkey.new_title'.tr(), textAlign: TextAlign.center),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -115,8 +117,8 @@ class _HostKeyDialog extends StatelessWidget {
             children: [
               Text(
                 changed
-                    ? 'Отпечаток ключа ${check.host.endpoint} не совпадает с сохранённым. Возможно, кто-то перехватывает соединение (атака «человек посередине»), или сервер был переустановлен. Не продолжайте, если не уверены.'
-                    : 'Вы подключаетесь к ${check.host.endpoint} впервые. Сверьте отпечаток ключа с администратором сервера.',
+                    ? 'hostkey.changed_body'.tr(namedArgs: {'host': check.host.endpoint})
+                    : 'hostkey.new_body'.tr(namedArgs: {'host': check.host.endpoint}),
                 style: textTheme.bodyMedium?.copyWith(
                   color: changed ? AppColors.red : AppColors.textDim,
                   height: 1.4,
@@ -124,11 +126,11 @@ class _HostKeyDialog extends StatelessWidget {
               ),
               if (changed) ...[
                 const SizedBox(height: 16),
-                const FieldLabel('Был сохранён'),
+                FieldLabel('hostkey.saved_was'.tr()),
                 MonoBox(check.previous ?? ''),
               ],
               const SizedBox(height: 16),
-              FieldLabel(changed ? 'Новый ключ' : 'Ключ (${check.type})'),
+              FieldLabel(changed ? 'hostkey.new_key'.tr() : 'hostkey.key_type'.tr(namedArgs: {'type': check.type})),
               MonoBox(changed ? check.value : check.fingerprint),
             ],
           ),
@@ -136,12 +138,12 @@ class _HostKeyDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+            child: Text('common.cancel'.tr(), style: TextStyle(color: AppColors.textDim)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: color),
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(changed ? 'Всё равно доверять' : 'Доверять'),
+            child: Text(changed ? 'hostkey.trust_anyway'.tr() : 'hostkey.trust'.tr()),
           ),
         ],
       ),
@@ -176,7 +178,7 @@ class _PasswordDialogState extends State<_PasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Пароль'),
+      title: Text('password.title'.tr()),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,10 +194,10 @@ class _PasswordDialogState extends State<_PasswordDialog> {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(
-              hintText: 'Введите пароль',
-              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              hintText: 'password.hint'.tr(),
+              prefixIcon: const Icon(HugeIcons.strokeRoundedSquareLock01),
               suffixIcon: IconButton(
-                icon: Icon(_obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+                icon: Icon(_obscure ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
@@ -207,16 +209,16 @@ class _PasswordDialogState extends State<_PasswordDialog> {
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
             dense: true,
-            title: const Text('Сохранить пароль'),
+            title: Text('password.remember'.tr()),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('common.cancel'.tr(), style: TextStyle(color: AppColors.textDim)),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Войти')),
+        FilledButton(onPressed: _submit, child: Text('password.login'.tr())),
       ],
     );
   }
@@ -285,7 +287,7 @@ class _PromptDialogState extends State<_PromptDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Отмена', style: TextStyle(color: AppColors.textDim)),
+          child: Text('common.cancel'.tr(), style: TextStyle(color: AppColors.textDim)),
         ),
         FilledButton(onPressed: _submit, child: Text(widget.confirmLabel)),
       ],

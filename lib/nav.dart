@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import 'models.dart';
 import 'screens/files_screen.dart';
@@ -25,7 +26,7 @@ void showSnack(String message, {bool error = false}) {
         content: Row(
           children: [
             Icon(
-              error ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+              error ? HugeIcons.strokeRoundedAlert02 : HugeIcons.strokeRoundedCheckmarkCircle02,
               color: error ? AppColors.red : AppColors.green,
               size: 20,
             ),

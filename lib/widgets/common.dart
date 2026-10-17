@@ -1,8 +1,79 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../models.dart';
 import '../theme.dart';
+
+class AppSwitch extends StatelessWidget {
+  const AppSwitch({super.key, required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoSwitch(
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: AppColors.accent,
+      inactiveTrackColor: AppColors.border,
+    );
+  }
+}
+
+class AppSwitchTile extends StatelessWidget {
+  const AppSwitchTile({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.title,
+    this.subtitle,
+    this.leading,
+  });
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final String title;
+  final Widget? subtitle;
+  final Widget? leading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      scale: 0.99,
+      haptic: true,
+      onTap: onChanged == null ? () {} : () => onChanged!(!value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            if (leading != null) ...[leading!, const SizedBox(width: 14)],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 3),
+                    DefaultTextStyle.merge(
+                      style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.3),
+                      child: subtitle!,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            AppSwitch(value: value, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class Pressable extends StatefulWidget {
   const Pressable({
@@ -185,7 +256,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add_rounded),
+                icon: const Icon(HugeIcons.strokeRoundedAdd01),
                 label: Text(actionLabel!),
               ),
             ],
@@ -316,10 +387,10 @@ class MonoBox extends StatelessWidget {
 IconData protocolIcon(Protocol protocol) {
   switch (protocol) {
     case Protocol.ssh:
-      return Icons.dns_rounded;
+      return HugeIcons.strokeRoundedDatabase;
     case Protocol.ftp:
     case Protocol.ftps:
-      return Icons.folder_copy_rounded;
+      return HugeIcons.strokeRoundedFolder02;
   }
 }
 

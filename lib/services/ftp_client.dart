@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:easy_localization/easy_localization.dart';
+
 class FtpException implements Exception {
   const FtpException(this.message, [this.code]);
 
@@ -75,7 +77,7 @@ class FtpClient {
     if (secure) {
       final auth = await _command('AUTH TLS');
       if (auth.code != 234) {
-        throw FtpException('Сервер не поддерживает FTPS (AUTH TLS): ${auth.text}', auth.code);
+        throw FtpException('conn.ftp_no_ftps'.tr(namedArgs: {'text': auth.text}), auth.code);
       }
       final subscription = _subscription;
       _subscription = null;
@@ -93,10 +95,10 @@ class FtpClient {
     if (userReply.code == 331 || userReply.code == 332) {
       final passReply = await _command('PASS $password');
       if (passReply.code != 230 && passReply.code != 202) {
-        throw FtpException('Ошибка входа: ${passReply.text}', passReply.code);
+        throw FtpException('conn.login_error'.tr(namedArgs: {'text': passReply.text}), passReply.code);
       }
     } else if (userReply.code != 230) {
-      throw FtpException('Ошибка входа: ${userReply.text}', userReply.code);
+      throw FtpException('conn.login_error'.tr(namedArgs: {'text': userReply.text}), userReply.code);
     }
     final features = await _command('FEAT');
     if (features.code == 211) {
@@ -155,7 +157,7 @@ class FtpClient {
   void _write(List<int> bytes) {
     final socket = _control;
     if (socket == null) {
-      throw const FtpException('Нет подключения');
+      throw FtpException('conn.no_connection'.tr());
     }
     var offset = 0;
     var attempts = 0;
@@ -165,7 +167,7 @@ class FtpClient {
       if (written == 0) {
         attempts++;
         if (attempts > 100000) {
-          throw const FtpException('Не удалось отправить команду');
+          throw FtpException('conn.send_failed'.tr());
         }
       }
     }
@@ -186,13 +188,13 @@ class FtpClient {
         throw error;
       }
       if (_closed) {
-        throw const FtpException('Сервер закрыл соединение');
+        throw FtpException('conn.server_closed'.tr());
       }
       final waiter = Completer<void>();
       _lineWaiter = waiter;
       await waiter.future.timeout(
         timeout,
-        onTimeout: () => throw TimeoutException('FTP: сервер не ответил', timeout),
+        onTimeout: () => throw TimeoutException('conn.ftp_no_response'.tr(), timeout),
       );
     }
     return _lines.removeAt(0);
@@ -250,7 +252,7 @@ class FtpClient {
       final pasv = await _expect('PASV', const {227});
       final match = RegExp(r'(\d+),(\d+),(\d+),(\d+),(\d+),(\d+)').firstMatch(pasv.text);
       if (match == null) {
-        throw FtpException('Не удалось разобрать ответ PASV: ${pasv.text}');
+        throw FtpException('conn.pasv_parse'.tr(namedArgs: {'text': pasv.text}));
       }
       dataPort = int.parse(match.group(5)!) * 256 + int.parse(match.group(6)!);
     }

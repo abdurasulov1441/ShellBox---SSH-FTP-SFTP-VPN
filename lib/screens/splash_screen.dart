@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../services/app_lock.dart';
@@ -124,7 +125,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'SSH · SFTP · Терминал',
+                            'splash.tagline'.tr(),
                             style: TextStyle(color: AppColors.textDim, fontSize: 13, letterSpacing: 2),
                           ),
                         ],

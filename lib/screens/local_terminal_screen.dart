@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
@@ -36,7 +38,7 @@ class _LocalTerminalScreenState extends State<LocalTerminalScreen> {
   }
 
   Future<void> _start() async {
-    _terminal.write('\x1b[90mЛокальный терминал устройства\x1b[0m\r\n');
+    _terminal.write('\x1b[90m${'localterm.banner'.tr()}\x1b[0m\r\n');
     const shells = ['/system/bin/sh', '/bin/sh', 'sh'];
     for (final shell in shells) {
       try {
@@ -47,16 +49,16 @@ class _LocalTerminalScreenState extends State<LocalTerminalScreen> {
         _stderr = const Utf8Decoder(allowMalformed: true).bind(process.stderr).listen(_terminal.write);
         process.exitCode.then((code) {
           if (mounted) {
-            _terminal.write('\r\n\x1b[90mСеанс завершён (код $code)\x1b[0m\r\n');
+            _terminal.write('\r\n\x1b[90m${'localterm.session_ended'.tr(namedArgs: {'code': '$code'})}\x1b[0m\r\n');
             setState(() => _ready = false);
           }
         });
-        ActivityLog.instance.info('Терминал', 'Открыт локальный терминал ($shell)');
+        ActivityLog.instance.info('localterm.log_tag'.tr(), 'localterm.log_opened'.tr(namedArgs: {'shell': shell}));
         _send('uname -a 2>/dev/null; id 2>/dev/null\n');
         return;
       } catch (_) {}
     }
-    _terminal.write('\r\n\x1b[31mНе удалось запустить локальную оболочку на этом устройстве\x1b[0m\r\n');
+    _terminal.write('\r\n\x1b[31m${'localterm.failed_shell'.tr()}\x1b[0m\r\n');
   }
 
   void _send(String data) {
@@ -116,11 +118,11 @@ class _LocalTerminalScreenState extends State<LocalTerminalScreen> {
     final scheme = TerminalScheme.byId(AppStore.instance.terminalTheme);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Локальный терминал'),
+        title: Text('tools.local_term'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Очистить',
-            icon: const Icon(Icons.cleaning_services_rounded),
+            tooltip: 'logs.clear'.tr(),
+            icon: const Icon(HugeIcons.strokeRoundedEraser01),
             onPressed: () => _send('clear\n'),
           ),
         ],
@@ -154,7 +156,7 @@ class _LocalTerminalScreenState extends State<LocalTerminalScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 children: [
                   _ToolKey(
-                      icon: Icons.keyboard_hide_rounded,
+                      icon: HugeIcons.strokeRoundedKeyboard,
                       onTap: () => _focus.hasFocus ? _focus.unfocus() : _focus.requestFocus()),
                   _ToolKey(label: 'TAB', onTap: () => _send('\t')),
                   _ToolKey(label: '^C', onTap: () => _key('\x03', clearLine: true)),

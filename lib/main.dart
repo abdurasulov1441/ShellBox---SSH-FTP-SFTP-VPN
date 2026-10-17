@@ -1,5 +1,6 @@
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,15 +18,27 @@ import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   await AppStore.instance.load();
   await ActivityLog.instance.load();
-  ThemeController.instance.loadMode(ThemeController.modeFromString(AppStore.instance.themeMode));
-  AppColors.active = ThemeController.instance.resolvePalette(PlatformDispatcher.instance.platformBrightness);
+  ThemeController.instance
+      .loadMode(ThemeController.modeFromString(AppStore.instance.themeMode));
+  AppColors.active = ThemeController.instance
+      .resolvePalette(PlatformDispatcher.instance.platformBrightness);
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
     await AuthService.instance.init();
   } catch (_) {}
-  runApp(const ShellBoxApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('ru'), Locale('uz'), Locale('en')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('ru'),
+      useOnlyLangCode: true,
+      child: const ShellBoxApp(),
+    ),
+  );
 }
 
 class ShellBoxApp extends StatefulWidget {
@@ -53,7 +66,8 @@ class _ShellBoxAppState extends State<ShellBoxApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
       _wentBackground = true;
     } else if (state == AppLifecycleState.resumed && _wentBackground) {
       _wentBackground = false;
@@ -89,20 +103,26 @@ class _ShellBoxAppState extends State<ShellBoxApp> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
           scaffoldMessengerKey: messengerKey,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: ThemeController.instance.mode,
           themeAnimationDuration: Duration.zero,
           builder: (context, child) {
-            final dark = ThemeController.instance.resolveIsDark(MediaQuery.platformBrightnessOf(context));
+            final dark = ThemeController.instance
+                .resolveIsDark(MediaQuery.platformBrightnessOf(context));
             AppColors.active = dark ? darkPalette : lightPalette;
             SystemChrome.setSystemUIOverlayStyle(
               SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
-                statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+                statusBarIconBrightness:
+                    dark ? Brightness.light : Brightness.dark,
                 statusBarBrightness: dark ? Brightness.dark : Brightness.light,
                 systemNavigationBarColor: AppColors.surface,
-                systemNavigationBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+                systemNavigationBarIconBrightness:
+                    dark ? Brightness.light : Brightness.dark,
               ),
             );
             return child!;

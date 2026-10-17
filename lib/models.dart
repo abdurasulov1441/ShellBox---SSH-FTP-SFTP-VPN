@@ -158,7 +158,7 @@ class SshKey {
     final created = json['createdAt'];
     return SshKey(
       id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? 'Ключ',
+      name: json['name'] as String? ?? 'Key',
       type: json['type'] as String? ?? '',
       publicKey: json['publicKey'] as String? ?? '',
       createdAt: created is int ? DateTime.fromMillisecondsSinceEpoch(created) : DateTime.now(),

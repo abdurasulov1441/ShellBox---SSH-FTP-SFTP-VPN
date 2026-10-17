@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../models.dart';
@@ -85,7 +87,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
       return;
     }
     if (_protocol.isSsh && _auth == AuthType.key && _keyId == null) {
-      showSnack('Выберите SSH-ключ или переключитесь на вход по паролю', error: true);
+      showSnack('editor.pick_key_or_password'.tr(), error: true);
       return;
     }
     setState(() => _saving = true);
@@ -115,7 +117,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
     if (!mounted) {
       return;
     }
-    showSnack(previous == null ? 'Хост добавлен' : 'Изменения сохранены');
+    showSnack(previous == null ? 'editor.host_added'.tr() : 'editor.changes_saved'.tr());
     Navigator.of(context).pop(host);
   }
 
@@ -136,14 +138,14 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isExisting ? 'Изменить хост' : 'Новый хост'),
+        title: Text(_isExisting ? 'editor.edit_host'.tr() : 'editor.new_host'.tr()),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
               onPressed: _saving ? null : _save,
-              child: const Text('Сохранить'),
+              child: Text('common.save'.tr()),
             ),
           ),
         ],
@@ -157,23 +159,23 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
             children: [
               _buildColorPicker(),
               const SizedBox(height: 20),
-              const FieldLabel('Протокол'),
+              FieldLabel('editor.protocol'.tr()),
               _buildProtocolPicker(),
               const SizedBox(height: 20),
-              const FieldLabel('Основное'),
+              FieldLabel('editor.general'.tr()),
               TextFormField(
                 controller: _label,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Название',
-                  hintText: 'Например, Рабочий сервер',
-                  prefixIcon: Icon(Icons.label_outline_rounded),
+                decoration: InputDecoration(
+                  labelText: 'keys.name'.tr(),
+                  hintText: 'editor.name_hint'.tr(),
+                  prefixIcon: const Icon(HugeIcons.strokeRoundedTag01),
                 ),
               ),
               const SizedBox(height: 12),
               _buildGroupField(),
               const SizedBox(height: 20),
-              const FieldLabel('Подключение'),
+              FieldLabel('editor.connection'.tr()),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -184,18 +186,18 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                       keyboardType: TextInputType.url,
                       autocorrect: false,
                       style: AppFonts.monoStyle(size: 14),
-                      decoration: const InputDecoration(
-                        labelText: 'Адрес',
+                      decoration: InputDecoration(
+                        labelText: 'editor.address'.tr(),
                         hintText: '192.168.1.10',
-                        prefixIcon: Icon(Icons.public_rounded),
+                        prefixIcon: const Icon(HugeIcons.strokeRoundedGlobe02),
                       ),
                       validator: (value) {
                         final text = value?.trim() ?? '';
                         if (text.isEmpty) {
-                          return 'Укажите адрес';
+                          return 'editor.address_required'.tr();
                         }
                         if (text.contains(' ') || text.contains('@')) {
-                          return 'Неверный адрес';
+                          return 'editor.address_invalid'.tr();
                         }
                         return null;
                       },
@@ -209,7 +211,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)],
                       style: AppFonts.monoStyle(size: 14),
-                      decoration: const InputDecoration(labelText: 'Порт'),
+                      decoration: InputDecoration(labelText: 'editor.port'.tr()),
                       validator: (value) {
                         final port = int.tryParse(value?.trim() ?? '');
                         if (port == null || port < 1 || port > 65535) {
@@ -227,27 +229,27 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                 autocorrect: false,
                 style: AppFonts.monoStyle(size: 14),
                 decoration: InputDecoration(
-                  labelText: 'Пользователь',
-                  hintText: _protocol.isFtp ? 'Пусто — анонимный вход' : null,
-                  prefixIcon: const Icon(Icons.person_outline_rounded),
+                  labelText: 'editor.user'.tr(),
+                  hintText: _protocol.isFtp ? 'editor.anon_hint'.tr() : null,
+                  prefixIcon: const Icon(HugeIcons.strokeRoundedUser),
                 ),
-                validator: (value) => !_protocol.isFtp && (value?.trim() ?? '').isEmpty ? 'Укажите пользователя' : null,
+                validator: (value) => !_protocol.isFtp && (value?.trim() ?? '').isEmpty ? 'editor.user_required'.tr() : null,
               ),
               const SizedBox(height: 20),
-              if (_protocol.isSsh) const FieldLabel('Способ входа'),
+              if (_protocol.isSsh) FieldLabel('editor.auth_method'.tr()),
               if (_protocol.isSsh)
                 SegmentedButton<AuthType>(
                   showSelectedIcon: false,
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: AuthType.password,
-                      label: Text('Пароль'),
-                      icon: Icon(Icons.password_rounded),
+                      label: Text('password.title'.tr()),
+                      icon: const Icon(HugeIcons.strokeRoundedLockPassword),
                     ),
                     ButtonSegment(
                       value: AuthType.key,
-                      label: Text('SSH-ключ'),
-                      icon: Icon(Icons.key_rounded),
+                      label: Text('editor.ssh_key'.tr()),
+                      icon: const Icon(HugeIcons.strokeRoundedKey01),
                     ),
                   ],
                   selected: {_auth},
@@ -256,35 +258,28 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
               if (_protocol.isSsh) const SizedBox(height: 12),
               if (_protocol.isSsh && _auth == AuthType.key) _buildKeySelector(),
               if (_protocol.isSsh && _auth == AuthType.key) const SizedBox(height: 12),
-              if (!_protocol.isSsh) const FieldLabel('Пароль'),
+              if (!_protocol.isSsh) FieldLabel('password.title'.tr()),
               _buildPasswordField(),
               if (_protocol.isSsh) ...[
                 const SizedBox(height: 20),
-                const FieldLabel('Дополнительно'),
+                FieldLabel('editor.advanced'.tr()),
                 TextFormField(
                   controller: _startup,
                   autocorrect: false,
                   style: AppFonts.monoStyle(size: 14),
-                  decoration: const InputDecoration(
-                    labelText: 'Команда при входе',
+                  decoration: InputDecoration(
+                    labelText: 'editor.startup_command'.tr(),
                     hintText: 'cd /var/www && ls',
-                    prefixIcon: Icon(Icons.play_arrow_rounded),
+                    prefixIcon: const Icon(HugeIcons.strokeRoundedPlay),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Card(
-                  child: SwitchListTile(
+                  child: AppSwitchTile(
                     value: _legacy,
                     onChanged: (value) => setState(() => _legacy = value),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    title: const Text('Старые алгоритмы'),
-                    subtitle: Padding(
-                      padding: EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Разрешить ssh-rsa (SHA-1), CBC-шифры и DH-sha1. Нужно для старых коммутаторов, роутеров и NAS. Менее безопасно.',
-                        style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
-                      ),
-                    ),
+                    title: 'editor.legacy_algos'.tr(),
+                    subtitle: Text('editor.legacy_algos_desc'.tr()),
                   ),
                 ),
               ],
@@ -354,8 +349,8 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
         SegmentedButton<Protocol>(
           showSelectedIcon: false,
           segments: const [
-            ButtonSegment(value: Protocol.ssh, label: Text('SSH'), icon: Icon(Icons.terminal_rounded)),
-            ButtonSegment(value: Protocol.ftp, label: Text('FTP'), icon: Icon(Icons.folder_copy_outlined)),
+            ButtonSegment(value: Protocol.ssh, label: Text('SSH'), icon: Icon(HugeIcons.strokeRoundedCommandLine)),
+            ButtonSegment(value: Protocol.ftp, label: Text('FTP'), icon: Icon(HugeIcons.strokeRoundedFolder02)),
           ],
           selected: {base},
           onSelectionChanged: (value) => _setProtocol(value.first),
@@ -364,7 +359,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
           Padding(
             padding: EdgeInsets.only(top: 8, left: 4),
             child: Text(
-              'Терминал и файлы по SFTP через одно подключение',
+              'editor.ssh_note'.tr(),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
             ),
           ),
@@ -372,15 +367,11 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Card(
-              child: SwitchListTile(
+              child: AppSwitchTile(
                 value: _protocol == Protocol.ftps,
                 onChanged: (value) => setState(() => _protocol = value ? Protocol.ftps : Protocol.ftp),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                title: const Text('Шифрование TLS (FTPS)'),
-                subtitle: Text(
-                  'Явный TLS через AUTH TLS (FTPES). Без него пароль передаётся открытым текстом.',
-                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
-                ),
+                title: 'editor.tls_title'.tr(),
+                subtitle: Text('editor.tls_desc'.tr()),
               ),
             ),
           ),
@@ -394,14 +385,14 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
       controller: _group,
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
-        labelText: 'Группа',
-        hintText: 'Без группы',
-        prefixIcon: const Icon(Icons.folder_outlined),
+        labelText: 'editor.group'.tr(),
+        hintText: 'hosts.no_group'.tr(),
+        prefixIcon: const Icon(HugeIcons.strokeRoundedFolder01),
         suffixIcon: groups.isEmpty
             ? null
             : PopupMenuButton<String>(
-                tooltip: 'Существующие группы',
-                icon: const Icon(Icons.arrow_drop_down_rounded),
+                tooltip: 'editor.existing_groups'.tr(),
+                icon: const Icon(HugeIcons.strokeRoundedArrowDown01),
                 onSelected: (value) => setState(() => _group.text = value),
                 itemBuilder: (_) => [
                   for (final group in groups) PopupMenuItem(value: group, child: Text(group)),
@@ -417,10 +408,10 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
       return Card(
         child: ListTile(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          leading: GradientIcon(icon: Icons.key_rounded, color: AppColors.yellow, size: 36),
-          title: const Text('Ключей пока нет'),
-          subtitle: Text('Сгенерируйте или импортируйте ключ', style: TextStyle(color: AppColors.textDim)),
-          trailing: const Icon(Icons.chevron_right_rounded),
+          leading: GradientIcon(icon: HugeIcons.strokeRoundedKey01, color: AppColors.yellow, size: 36),
+          title: Text('editor.no_keys_yet'.tr()),
+          subtitle: Text('editor.no_keys_sub'.tr(), style: TextStyle(color: AppColors.textDim)),
+          trailing: const Icon(HugeIcons.strokeRoundedArrowRight01),
           onTap: _openKeys,
         ),
       );
@@ -432,7 +423,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
       isExpanded: true,
       dropdownColor: AppColors.surfaceHigh,
       borderRadius: BorderRadius.circular(12),
-      decoration: const InputDecoration(labelText: 'SSH-ключ', prefixIcon: Icon(Icons.key_rounded)),
+      decoration: InputDecoration(labelText: 'editor.ssh_key'.tr(), prefixIcon: const Icon(HugeIcons.strokeRoundedKey01)),
       items: [
         for (final key in keys)
           DropdownMenuItem(
@@ -441,16 +432,16 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
           ),
       ],
       onChanged: (value) => setState(() => _keyId = value),
-      validator: (value) => value == null ? 'Выберите ключ' : null,
+      validator: (value) => value == null ? 'editor.pick_key'.tr() : null,
     );
   }
 
   Widget _buildPasswordField() {
     final hint = _removePassword
-        ? 'Сохранённый пароль будет удалён'
+        ? 'editor.pw_will_remove'.tr()
         : (_hasSavedPassword
-            ? 'Пароль сохранён — оставьте пустым, чтобы не менять'
-            : 'Не сохранять — спрашивать при входе');
+            ? 'editor.pw_saved_hint'.tr()
+            : 'editor.pw_ask_hint'.tr());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -465,12 +456,12 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
             }
           },
           decoration: InputDecoration(
-            labelText: _protocol.isSsh && _auth == AuthType.key ? 'Пароль (запасной)' : 'Пароль',
+            labelText: _protocol.isSsh && _auth == AuthType.key ? 'editor.pw_fallback'.tr() : 'password.title'.tr(),
             hintText: hint,
-            helperText: _hasSavedPassword && !_removePassword ? 'сохранён' : null,
-            prefixIcon: const Icon(Icons.lock_outline_rounded),
+            helperText: _hasSavedPassword && !_removePassword ? 'editor.saved'.tr() : null,
+            prefixIcon: const Icon(HugeIcons.strokeRoundedSquareLock01),
             suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+              icon: Icon(_obscure ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
               onPressed: () => setState(() => _obscure = !_obscure),
             ),
           ),
@@ -484,8 +475,8 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
                 _removePassword = true;
                 _password.clear();
               }),
-              icon: const Icon(Icons.delete_outline_rounded, size: 18),
-              label: const Text('Удалить сохранённый пароль'),
+              icon: const Icon(HugeIcons.strokeRoundedDelete02, size: 18),
+              label: Text('editor.remove_saved_pw'.tr()),
             ),
           ),
       ],

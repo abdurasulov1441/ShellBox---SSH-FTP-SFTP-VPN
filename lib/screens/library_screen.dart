@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../data/command_library.dart';
@@ -15,7 +17,7 @@ class CommandLibraryScreen extends StatelessWidget {
     final session = SessionManager.instance.connectedCurrent;
     if (session == null) {
       await Clipboard.setData(ClipboardData(text: command.command));
-      showSnack('Нет активной сессии — команда скопирована');
+      showSnack('snippets.no_session_copied'.tr());
       return;
     }
     SessionManager.instance.selectSession(session);
@@ -27,13 +29,13 @@ class CommandLibraryScreen extends StatelessWidget {
     await AppStore.instance.saveSnippet(
       Snippet(id: AppStore.newId(), name: command.name, command: command.command),
     );
-    showSnack('Добавлено в сниппеты');
+    showSnack('library.added_to_snippets'.tr());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Библиотека команд')),
+      appBar: AppBar(title: Text('snippets.library'.tr())),
       body: ListenableBuilder(
         listenable: SessionManager.instance,
         builder: (context, _) {
@@ -52,13 +54,13 @@ class CommandLibraryScreen extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textDim),
+                      Icon(HugeIcons.strokeRoundedInformationCircle, size: 18, color: AppColors.textDim),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           target != null
-                              ? 'Нажатие запускает команду в «${target.host.title}». Замените TARGET на адрес цели.'
-                              : 'Нет активной сессии — нажатие копирует команду. TARGET замените на адрес цели.',
+                              ? 'library.hint_active'.tr(namedArgs: {'host': target.host.title})
+                              : 'library.hint_inactive'.tr(),
                           style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                         ),
                       ),
@@ -90,7 +92,8 @@ class _CategoryTile extends StatelessWidget {
       child: ExpansionTile(
         leading: Icon(category.icon, color: AppColors.accent),
         title: Text(category.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text('${category.commands.length} команд', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+        subtitle: Text('library.commands_count'.tr(namedArgs: {'count': '${category.commands.length}'}),
+            style: TextStyle(color: AppColors.textDim, fontSize: 12)),
         childrenPadding: const EdgeInsets.only(bottom: 8),
         shape: const Border(),
         collapsedShape: const Border(),
@@ -109,14 +112,14 @@ class _CategoryTile extends StatelessWidget {
                 ),
               ),
               trailing: IconButton(
-                tooltip: 'В сниппеты',
-                icon: Icon(Icons.bookmark_add_outlined, size: 20, color: AppColors.textDim),
+                tooltip: 'library.to_snippets'.tr(),
+                icon: Icon(HugeIcons.strokeRoundedBookmarkAdd01, size: 20, color: AppColors.textDim),
                 onPressed: () => onSave(command),
               ),
               onTap: () => onRun(command),
               onLongPress: () async {
                 await Clipboard.setData(ClipboardData(text: command.command));
-                showSnack('Команда скопирована');
+                showSnack('keys.command_copied'.tr());
               },
             ),
         ],

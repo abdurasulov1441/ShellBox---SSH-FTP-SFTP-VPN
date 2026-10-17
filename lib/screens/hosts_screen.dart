@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../models.dart';
 import '../nav.dart';
@@ -135,7 +137,7 @@ class _HostsScreenState extends State<HostsScreen> {
                       const LogoMark(size: 26),
                       const SizedBox(width: 10),
                       Text(
-                        'Хосты',
+                        'nav.hosts'.tr(),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -151,11 +153,11 @@ class _HostsScreenState extends State<HostsScreen> {
                     enableSuggestions: false,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      hintText: 'Поиск, user@host или ftp://…',
-                      prefixIcon: const Icon(Icons.search_rounded),
+                      hintText: 'hosts.search_hint'.tr(),
+                      prefixIcon: const Icon(HugeIcons.strokeRoundedSearch01),
                       suffixIcon: _query.isEmpty
                           ? null
-                          : IconButton(icon: const Icon(Icons.close_rounded), onPressed: _search.clear),
+                          : IconButton(icon: const Icon(HugeIcons.strokeRoundedCancel01), onPressed: _search.clear),
                     ),
                   ),
                 ),
@@ -169,7 +171,7 @@ class _HostsScreenState extends State<HostsScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
                       children: [
                         _FilterChip(
-                            label: 'Все', selected: filter == null, onTap: () => setState(() => _filter = null)),
+                            label: 'hosts.all'.tr(), selected: filter == null, onTap: () => setState(() => _filter = null)),
                         for (final protocol in const [Protocol.ssh, Protocol.ftp])
                           if (protocolsUsed.contains(protocol) || filter == protocol)
                             _FilterChip(
@@ -197,7 +199,7 @@ class _HostsScreenState extends State<HostsScreen> {
                   ),
                 ),
               if (recent.isNotEmpty) ...[
-                const SliverToBoxAdapter(child: SectionHeader('Недавние')),
+                SliverToBoxAdapter(child: SectionHeader('hosts.recent'.tr())),
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: 92,
@@ -215,11 +217,10 @@ class _HostsScreenState extends State<HostsScreen> {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyState(
-                    icon: Icons.dns_rounded,
-                    title: 'Нет сохранённых хостов',
-                    message:
-                        'Добавьте сервер SSH или FTP, чтобы подключаться в одно касание. Или введите user@host в поиске для быстрого подключения.',
-                    actionLabel: 'Добавить хост',
+                    icon: HugeIcons.strokeRoundedDatabase,
+                    title: 'hosts.empty_title'.tr(),
+                    message: 'hosts.empty_msg'.tr(),
+                    actionLabel: 'hosts.add'.tr(),
                     onAction: _addHost,
                   ),
                 )
@@ -227,14 +228,14 @@ class _HostsScreenState extends State<HostsScreen> {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
-                    child: Text('Ничего не найдено', style: TextStyle(color: AppColors.textDim)),
+                    child: Text('hosts.nothing_found'.tr(), style: TextStyle(color: AppColors.textDim)),
                   ),
                 )
               else
                 for (final group in groupNames) ...[
                   SliverToBoxAdapter(
                     child: SectionHeader(
-                      group.isEmpty ? (groupNames.length > 1 ? 'Без группы' : 'Все хосты') : group,
+                      group.isEmpty ? (groupNames.length > 1 ? 'hosts.no_group'.tr() : 'hosts.all_hosts'.tr()) : group,
                       trailing: Text(
                         '${grouped[group]!.length}',
                         style: TextStyle(color: AppColors.textDim, fontSize: 12),
@@ -290,7 +291,7 @@ class _QuickConnectCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Быстрое подключение · ${host.protocol.title}',
+                    Text('hosts.quick_connect'.tr(namedArgs: {'proto': host.protocol.title}),
                         style: const TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
                     Text(host.subtitle, style: AppFonts.monoStyle(size: 13, color: AppColors.textDim)),
@@ -306,14 +307,14 @@ class _QuickConnectCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onConnect,
                   icon: Icon(protocolIcon(host.protocol)),
-                  label: const Text('Подключиться'),
+                  label: Text('hosts.connect'.tr()),
                 ),
               ),
               const SizedBox(width: 10),
               OutlinedButton.icon(
                 onPressed: onSave,
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: const Text('Сохранить'),
+                icon: const Icon(HugeIcons.strokeRoundedBookmarkAdd01),
+                label: Text('common.save'.tr()),
               ),
             ],
           ),
@@ -385,17 +386,17 @@ class _HostTile extends StatelessWidget {
         await Navigator.of(context).push<Host>(MaterialPageRoute(builder: (_) => HostEditorScreen(host: host)));
       case 'duplicate':
         await AppStore.instance.duplicateHost(host);
-        showSnack('Хост продублирован');
+        showSnack('hosts.duplicated'.tr());
       case 'delete':
         final ok = await confirmAction(
-          title: 'Удалить «${host.title}»?',
-          message: 'Хост и сохранённый пароль будут удалены с устройства.',
+          title: 'hosts.delete_title'.tr(namedArgs: {'title': host.title}),
+          message: 'hosts.delete_msg'.tr(),
         );
         if (!ok) {
           return;
         }
         await AppStore.instance.deleteHost(host.id);
-        showSnack('Хост удалён');
+        showSnack('hosts.deleted'.tr());
     }
   }
 
@@ -442,16 +443,18 @@ class _HostTile extends StatelessWidget {
               ),
               if (host.protocol.isSsh)
                 IconButton(
-                  tooltip: 'Файлы (SFTP)',
+                  tooltip: 'hosts.files_sftp'.tr(),
                   visualDensity: VisualDensity.compact,
-                  icon: Icon(Icons.folder_open_rounded, size: 20, color: AppColors.accent),
+                  icon: Icon(HugeIcons.strokeRoundedFolderOpen, size: 20, color: AppColors.accent),
                   onPressed: () => openFiles(host),
                 ),
               if (host.protocol.isSsh)
                 Tooltip(
-                  message: host.auth == AuthType.key ? 'SSH-ключ: ${key?.name ?? 'не выбран'}' : 'Пароль',
+                  message: host.auth == AuthType.key
+                      ? 'hosts.ssh_key_tip'.tr(namedArgs: {'name': key?.name ?? 'hosts.not_selected'.tr()})
+                      : 'password.title'.tr(),
                   child: Icon(
-                    host.auth == AuthType.key ? Icons.key_rounded : Icons.password_rounded,
+                    host.auth == AuthType.key ? HugeIcons.strokeRoundedKey01 : HugeIcons.strokeRoundedLockPassword,
                     size: 18,
                     color: host.auth == AuthType.key ? AppColors.yellow : AppColors.textDim,
                   ),
@@ -460,45 +463,45 @@ class _HostTile extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: 6),
                   child: Tooltip(
-                    message: 'Старые алгоритмы',
-                    child: Icon(Icons.history_rounded, size: 18, color: AppColors.textDim),
+                    message: 'hosts.legacy_algos'.tr(),
+                    child: Icon(HugeIcons.strokeRoundedClock01, size: 18, color: AppColors.textDim),
                   ),
                 ),
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+                icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
                 onSelected: (value) => _onMenu(context, value),
                 itemBuilder: (_) => [
-                  if (host.protocol.isSsh) ...const [
+                  if (host.protocol.isSsh) ...[
                     PopupMenuItem(
                       value: 'terminal',
-                      child: ListTile(leading: Icon(Icons.terminal_rounded), title: Text('Терминал')),
+                      child: ListTile(leading: const Icon(HugeIcons.strokeRoundedCommandLine), title: Text('nav.terminal'.tr())),
                     ),
                     PopupMenuItem(
                       value: 'files',
-                      child: ListTile(leading: Icon(Icons.folder_copy_outlined), title: Text('Файлы (SFTP)')),
+                      child: ListTile(leading: const Icon(HugeIcons.strokeRoundedFolder02), title: Text('hosts.files_sftp'.tr())),
                     ),
                   ],
                   if (host.protocol.isFtp)
                     PopupMenuItem(
                       value: 'files',
                       child: ListTile(
-                        leading: const Icon(Icons.folder_copy_outlined),
-                        title: Text('Файлы (${host.protocol.title})'),
+                        leading: const Icon(HugeIcons.strokeRoundedFolder02),
+                        title: Text('hosts.files_proto'.tr(namedArgs: {'proto': host.protocol.title})),
                       ),
                     ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
-                    child: ListTile(leading: Icon(Icons.edit_rounded), title: Text('Изменить')),
+                    child: ListTile(leading: const Icon(HugeIcons.strokeRoundedEdit02), title: Text('hosts.edit'.tr())),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'duplicate',
-                    child: ListTile(leading: Icon(Icons.copy_all_rounded), title: Text('Дублировать')),
+                    child: ListTile(leading: const Icon(HugeIcons.strokeRoundedCopy01), title: Text('hosts.duplicate'.tr())),
                   ),
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
-                      title: Text('Удалить', style: TextStyle(color: AppColors.red)),
+                      leading: Icon(HugeIcons.strokeRoundedDelete02, color: AppColors.red),
+                      title: Text('common.delete'.tr(), style: TextStyle(color: AppColors.red)),
                     ),
                   ),
                 ],
@@ -578,7 +581,7 @@ class _VpnAction extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Icon(
-                connected ? Icons.vpn_lock_rounded : Icons.vpn_key_rounded,
+                connected ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedShieldKey,
                 color: connected ? AppColors.green : (busy ? AppColors.yellow : AppColors.textDim),
               ),
               if (connected)

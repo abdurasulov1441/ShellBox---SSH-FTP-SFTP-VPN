@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
@@ -32,12 +34,12 @@ Future<void> showSnippetSheet(BuildContext context, TerminalSession session) asy
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SheetTitle('Сниппеты', subtitle: 'Выполнить в ${session.host.title}'),
+              SheetTitle('snippets.title'.tr(), subtitle: 'snippets.run_in'.tr(namedArgs: {'host': session.host.title})),
               if (snippets.isEmpty)
                 Padding(
                   padding: EdgeInsets.all(24),
                   child: Text(
-                    'Сниппетов пока нет. Добавьте их на вкладке «Сниппеты».',
+                    'snippets.empty_sheet'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim),
                   ),
@@ -50,7 +52,7 @@ Future<void> showSnippetSheet(BuildContext context, TerminalSession session) asy
                     itemBuilder: (_, index) {
                       final snippet = snippets[index];
                       return ListTile(
-                        leading: Icon(Icons.bolt_rounded, color: AppColors.yellow),
+                        leading: Icon(HugeIcons.strokeRoundedFlash, color: AppColors.yellow),
                         title: Text(snippet.name.isEmpty ? snippet.command : snippet.name),
                         subtitle: Text(
                           snippet.command,
@@ -83,13 +85,13 @@ class SuggestionBar extends StatelessWidget {
   IconData _icon(SuggestionKind kind) {
     switch (kind) {
       case SuggestionKind.history:
-        return Icons.history_rounded;
+        return HugeIcons.strokeRoundedClock01;
       case SuggestionKind.snippet:
-        return Icons.bolt_rounded;
+        return HugeIcons.strokeRoundedFlash;
       case SuggestionKind.command:
-        return Icons.terminal_rounded;
+        return HugeIcons.strokeRoundedCommandLine;
       case SuggestionKind.next:
-        return Icons.chevron_right_rounded;
+        return HugeIcons.strokeRoundedArrowRight01;
     }
   }
 
@@ -201,7 +203,7 @@ class _ExtraKeysBarState extends State<ExtraKeysBar> {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             children: [
               _KeyButton(
-                icon: Icons.keyboard_hide_rounded,
+                icon: HugeIcons.strokeRoundedKeyboard,
                 onTap: () {
                   if (widget.focusNode.hasFocus) {
                     widget.focusNode.unfocus();
@@ -232,10 +234,10 @@ class _ExtraKeysBarState extends State<ExtraKeysBar> {
       _KeyButton(label: 'TAB', onTap: () => session.key(TerminalKey.tab)),
       _KeyButton(label: 'CTRL', active: session.ctrl, onTap: session.toggleCtrl),
       _KeyButton(label: 'ALT', active: session.alt, onTap: session.toggleAlt),
-      _RepeatKey(icon: Icons.arrow_upward_rounded, onKey: () => session.key(TerminalKey.arrowUp)),
-      _RepeatKey(icon: Icons.arrow_downward_rounded, onKey: () => session.key(TerminalKey.arrowDown)),
-      _RepeatKey(icon: Icons.arrow_back_rounded, onKey: () => session.key(TerminalKey.arrowLeft)),
-      _RepeatKey(icon: Icons.arrow_forward_rounded, onKey: () => session.key(TerminalKey.arrowRight)),
+      _RepeatKey(icon: HugeIcons.strokeRoundedArrowUp01, onKey: () => session.key(TerminalKey.arrowUp)),
+      _RepeatKey(icon: HugeIcons.strokeRoundedArrowDown01, onKey: () => session.key(TerminalKey.arrowDown)),
+      _RepeatKey(icon: HugeIcons.strokeRoundedArrowLeft01, onKey: () => session.key(TerminalKey.arrowLeft)),
+      _RepeatKey(icon: HugeIcons.strokeRoundedArrowRight01, onKey: () => session.key(TerminalKey.arrowRight)),
       for (final symbol in const ['/', '-', '|', '~', ':', '*', '>', '&', '\$', '.'])
         _KeyButton(label: symbol, onTap: () => session.input(symbol)),
       _KeyButton(label: 'HOME', onTap: () => session.key(TerminalKey.home)),
@@ -246,8 +248,8 @@ class _ExtraKeysBarState extends State<ExtraKeysBar> {
       _KeyButton(label: '^D', onTap: () => session.sendRaw('\x04')),
       _KeyButton(label: '^Z', onTap: () => session.sendRaw('\x1a')),
       _KeyButton(label: '^L', onTap: () => session.sendRaw('\x0c')),
-      _KeyButton(icon: Icons.content_paste_rounded, onTap: () => pasteInto(session)),
-      _KeyButton(icon: Icons.bolt_rounded, onTap: () => showSnippetSheet(context, session)),
+      _KeyButton(icon: HugeIcons.strokeRoundedClipboard, onTap: () => pasteInto(session)),
+      _KeyButton(icon: HugeIcons.strokeRoundedFlash, onTap: () => showSnippetSheet(context, session)),
     ];
   }
 }

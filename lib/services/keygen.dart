@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class GeneratedKey {
   const GeneratedKey({required this.privatePem, required this.publicLine, required this.type});
@@ -85,7 +86,7 @@ class KeyGen {
   static KeyInfo inspect(String pem, String? passphrase, String comment) {
     final pairs = SSHKeyPair.fromPem(pem, passphrase);
     if (pairs.isEmpty) {
-      throw const FormatException('Ключ не найден в файле');
+      throw FormatException('keys.not_found_in_file'.tr());
     }
     final blob = pairs.first.toPublicKey().encode();
     final type = _blobType(blob) ?? pairs.first.type;

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../models.dart';
 import 'ftp_client.dart';
@@ -101,11 +102,11 @@ class SshConnector {
     if (host.auth == AuthType.key) {
       final keyId = host.keyId;
       if (keyId == null || store.keyById(keyId) == null) {
-        throw const ConnectError('Для хоста не выбран SSH-ключ');
+        throw ConnectError('conn.no_key_selected'.tr());
       }
       final pem = await store.readPrivateKey(keyId);
       if (pem == null || pem.isEmpty) {
-        throw const ConnectError('Приватный ключ не найден в хранилище');
+        throw ConnectError('conn.key_not_in_store'.tr());
       }
       final passphrase = await store.readPassphrase(keyId);
       identities = SSHKeyPair.fromPem(pem, passphrase == null || passphrase.isEmpty ? null : passphrase);
@@ -130,7 +131,7 @@ class SshConnector {
       return reply?.password;
     }
 
-    ActivityLog.instance.info('SSH', 'Подключение к ${host.subtitle}');
+    ActivityLog.instance.info('SSH', 'conn.log_connecting'.tr(namedArgs: {'host': host.subtitle}));
     final socket = await SSHSocket.connect(host.address, host.port, timeout: const Duration(seconds: 12));
 
     final client = SSHClient(
@@ -179,11 +180,12 @@ class SshConnector {
     try {
       await client.authenticated;
     } catch (e) {
-      ActivityLog.instance.error('SSH', 'Ошибка входа ${host.subtitle}: ${describeSshError(e)}');
+      ActivityLog.instance.error('SSH',
+          'conn.log_auth_error'.tr(namedArgs: {'host': host.subtitle, 'error': describeSshError(e)}));
       client.close();
       rethrow;
     }
-    ActivityLog.instance.success('SSH', 'Подключено к ${host.subtitle}');
+    ActivityLog.instance.success('SSH', 'conn.log_connected'.tr(namedArgs: {'host': host.subtitle}));
 
     final reply = lastReply;
     if (reply != null && reply.remember && store.hostById(host.id) != null) {
@@ -198,92 +200,94 @@ String describeSshError(Object error) {
     return error.message;
   }
   if (error is SSHAuthFailError) {
-    return 'Ошибка входа: неверный логин, пароль или ключ';
+    return 'conn.auth_fail'.tr();
   }
   if (error is SSHAuthAbortError) {
-    return 'Вход отменён или сервер не принял ни один способ входа';
+    return 'conn.auth_abort'.tr();
   }
   if (error is SSHHostkeyError) {
-    return 'Ключ сервера отклонён — соединение прервано';
+    return 'conn.hostkey_rejected'.tr();
   }
   if (error is SSHKeyDecryptError) {
-    return 'Не удалось расшифровать ключ: неверная парольная фраза';
+    return 'conn.key_decrypt'.tr();
   }
   if (error is SSHKeyDecodeError) {
-    return 'Не удалось прочитать SSH-ключ: формат не поддерживается';
+    return 'conn.key_decode'.tr();
   }
   if (error is SSHHandshakeError) {
-    return 'Не удалось согласовать алгоритмы шифрования. Попробуйте включить «Старые алгоритмы» в настройках хоста';
+    return 'conn.handshake'.tr();
   }
   if (error is SSHChannelOpenError) {
-    return 'Сервер отказал в открытии канала';
+    return 'conn.channel_open'.tr();
   }
   if (error is SSHDisconnectError) {
-    return 'Сервер закрыл соединение';
+    return 'conn.server_closed'.tr();
   }
   if (error is SSHSocketError) {
-    return 'Соединение разорвано';
+    return 'conn.conn_lost'.tr();
   }
   if (error is SftpStatusError) {
     switch (error.code) {
       case 2:
-        return 'Файл или папка не найдены';
+        return 'conn.not_found'.tr();
       case 3:
-        return 'Недостаточно прав';
+        return 'conn.no_perms'.tr();
       default:
-        return 'Ошибка SFTP: ${error.message}';
+        return 'conn.sftp_error'.tr(namedArgs: {'msg': error.message});
     }
   }
   if (error is SftpError) {
-    return 'Ошибка SFTP: ${error.message}';
+    return 'conn.sftp_error'.tr(namedArgs: {'msg': error.message});
   }
   if (error is FtpException) {
     final lower = error.message.toLowerCase();
     if (error.code == 530) {
-      return 'Ошибка входа FTP: неверный логин или пароль';
+      return 'conn.ftp_auth'.tr();
     }
     if (lower.contains('resumption') || lower.contains('reuse')) {
-      return 'Сервер требует повторного использования TLS-сессии для передачи данных — это пока не поддерживается. Используйте SFTP или отключите это требование на сервере (vsftpd: require_ssl_reuse=NO)';
+      return 'conn.ftp_tls_reuse'.tr();
     }
     if (error.code == 550) {
-      return 'Файл или папка недоступны: ${error.message}';
+      return 'conn.ftp_unavailable'.tr(namedArgs: {'msg': error.message});
     }
     if (error.code == 553 || error.code == 532) {
-      return 'Недостаточно прав: ${error.message}';
+      return 'conn.no_perms_msg'.tr(namedArgs: {'msg': error.message});
     }
-    return error.code == null ? 'Ошибка FTP: ${error.message}' : 'Ошибка FTP ${error.code}: ${error.message}';
+    return error.code == null
+        ? 'conn.ftp_error'.tr(namedArgs: {'msg': error.message})
+        : 'conn.ftp_error_code'.tr(namedArgs: {'code': '${error.code}', 'msg': error.message});
   }
   if (error is HandshakeException) {
-    return 'Ошибка TLS: сервер не поддерживает защищённое соединение или сертификат недействителен';
+    return 'conn.tls_error'.tr();
   }
   if (error is SocketException) {
     final message = error.osError?.message ?? error.message;
     if (message.toLowerCase().contains('refused')) {
-      return 'Сервер отклонил подключение (порт закрыт)';
+      return 'conn.refused'.tr();
     }
     if (message.toLowerCase().contains('host lookup') || message.toLowerCase().contains('no address')) {
-      return 'Не удалось найти сервер по адресу';
+      return 'conn.host_not_found'.tr();
     }
     if (message.toLowerCase().contains('unreachable')) {
-      return 'Сеть недоступна';
+      return 'conn.net_unreachable'.tr();
     }
-    return 'Не удалось подключиться к серверу: $message';
+    return 'conn.connect_failed'.tr(namedArgs: {'msg': message});
   }
   if (error is TimeoutException) {
-    return 'Превышено время ожидания ответа сервера';
+    return 'conn.timeout'.tr();
   }
   if (error is UnsupportedError) {
-    return 'Не поддерживается: ${error.message}';
+    return 'conn.unsupported'.tr(namedArgs: {'msg': '${error.message}'});
   }
   if (error is FormatException) {
-    return 'Неверный формат: ${error.message}';
+    return 'conn.bad_format'.tr(namedArgs: {'msg': error.message});
   }
   if (error is ArgumentError) {
-    return 'Неверные данные: ${error.message}';
+    return 'conn.bad_data'.tr(namedArgs: {'msg': '${error.message}'});
   }
   final text = error.toString();
   if (text.contains('passphrase')) {
-    return 'Неверная или отсутствующая парольная фраза ключа';
+    return 'conn.bad_passphrase'.tr();
   }
   return text;
 }

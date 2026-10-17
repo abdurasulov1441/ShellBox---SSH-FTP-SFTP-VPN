@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
 
 import '../models.dart';
@@ -33,17 +35,17 @@ class _VpnScreenState extends State<VpnScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SheetTitle('Импорт профиля', subtitle: 'Файл конфигурации WireGuard (.conf)'),
+            SheetTitle('vpn.import_profile'.tr(), subtitle: 'vpn.import_sub'.tr()),
             ListTile(
-              leading: const GradientIcon(icon: Icons.folder_open_rounded, size: 38),
-              title: const Text('Из файла'),
-              subtitle: Text('Выберите .conf-файл', style: TextStyle(color: AppColors.textDim)),
+              leading: const GradientIcon(icon: HugeIcons.strokeRoundedFolderOpen, size: 38),
+              title: Text('keys.from_file'.tr()),
+              subtitle: Text('vpn.pick_conf'.tr(), style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('file'),
             ),
             ListTile(
-              leading: GradientIcon(icon: Icons.content_paste_rounded, color: AppColors.green, size: 38),
-              title: const Text('Из буфера обмена'),
-              subtitle: Text('Вставить текст конфигурации', style: TextStyle(color: AppColors.textDim)),
+              leading: GradientIcon(icon: HugeIcons.strokeRoundedClipboard, color: AppColors.green, size: 38),
+              title: Text('vpn.from_clipboard'.tr()),
+              subtitle: Text('vpn.paste_config'.tr(), style: TextStyle(color: AppColors.textDim)),
               onTap: () => Navigator.of(sheetContext).pop('clipboard'),
             ),
             const SizedBox(height: 12),
@@ -58,20 +60,20 @@ class _VpnScreenState extends State<VpnScreen> {
     String suggestedName;
     if (source == 'file') {
       try {
-        final files = await FilePicker.pickFiles(dialogTitle: 'Выберите конфигурацию WireGuard');
+        final files = await FilePicker.pickFiles(dialogTitle: 'vpn.pick_wg_config'.tr());
         if (files.isEmpty) {
           return;
         }
         final file = files.first;
         final bytes = await file.readAsBytes();
         if (bytes.length > 64 * 1024) {
-          showSnack('Файл слишком большой для конфигурации', error: true);
+          showSnack('vpn.file_too_big'.tr(), error: true);
           return;
         }
         config = utf8.decode(bytes, allowMalformed: true);
         suggestedName = file.name.replaceAll(RegExp(r'\.conf$', caseSensitive: false), '');
       } catch (e) {
-        showSnack('Не удалось прочитать файл: $e', error: true);
+        showSnack('keys.file_read_failed'.tr(namedArgs: {'error': '$e'}), error: true);
         return;
       }
     } else {
@@ -79,23 +81,23 @@ class _VpnScreenState extends State<VpnScreen> {
       config = data?.text ?? '';
       suggestedName = 'VPN ${AppStore.instance.vpnProfiles.length + 1}';
       if (config.trim().isEmpty) {
-        showSnack('Буфер обмена пуст', error: true);
+        showSnack('keys.clipboard_empty'.tr(), error: true);
         return;
       }
     }
     final parsed = VpnProfile.parseConfig(config);
     if (parsed == null) {
-      showSnack('Это не похоже на конфигурацию WireGuard', error: true);
+      showSnack('vpn.not_wg_config'.tr(), error: true);
       return;
     }
     if (!context.mounted) {
       return;
     }
     final name = await promptText(
-      title: 'Название профиля',
-      label: 'Название',
+      title: 'vpn.profile_name'.tr(),
+      label: 'keys.name'.tr(),
       initial: suggestedName.isEmpty ? 'VPN' : suggestedName,
-      confirmLabel: 'Сохранить',
+      confirmLabel: 'common.save'.tr(),
     );
     if (name == null) {
       return;
@@ -109,7 +111,7 @@ class _VpnScreenState extends State<VpnScreen> {
       createdAt: DateTime.now(),
     );
     await AppStore.instance.saveVpnProfile(profile, config: config);
-    showSnack('Профиль добавлен');
+    showSnack('vpn.profile_added'.tr());
   }
 
   Future<void> _menu(BuildContext context, VpnProfile profile) async {
@@ -121,13 +123,13 @@ class _VpnScreenState extends State<VpnScreen> {
           children: [
             SheetTitle(profile.name, subtitle: profile.endpoint),
             ListTile(
-              leading: const Icon(Icons.edit_rounded),
-              title: const Text('Переименовать'),
+              leading: const Icon(HugeIcons.strokeRoundedEdit02),
+              title: Text('keys.rename'.tr()),
               onTap: () => Navigator.of(sheetContext).pop('rename'),
             ),
             ListTile(
-              leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
-              title: Text('Удалить', style: TextStyle(color: AppColors.red)),
+              leading: Icon(HugeIcons.strokeRoundedDelete02, color: AppColors.red),
+              title: Text('common.delete'.tr(), style: TextStyle(color: AppColors.red)),
               onTap: () => Navigator.of(sheetContext).pop('delete'),
             ),
             const SizedBox(height: 12),
@@ -139,7 +141,7 @@ class _VpnScreenState extends State<VpnScreen> {
       return;
     }
     if (action == 'rename') {
-      final name = await promptText(title: 'Переименовать', label: 'Название', initial: profile.name);
+      final name = await promptText(title: 'keys.rename'.tr(), label: 'keys.name'.tr(), initial: profile.name);
       if (name != null) {
         await AppStore.instance.saveVpnProfile(profile.copyWith(name: name));
       }
@@ -149,12 +151,12 @@ class _VpnScreenState extends State<VpnScreen> {
         await controller.disconnect();
       }
       final ok = await confirmAction(
-        title: 'Удалить профиль «${profile.name}»?',
-        message: 'Конфигурация будет удалена с устройства.',
+        title: 'vpn.delete_title'.tr(namedArgs: {'name': profile.name}),
+        message: 'vpn.delete_msg'.tr(),
       );
       if (ok) {
         await AppStore.instance.deleteVpnProfile(profile.id);
-        showSnack('Профиль удалён');
+        showSnack('vpn.profile_deleted'.tr());
       }
     }
   }
@@ -166,8 +168,8 @@ class _VpnScreenState extends State<VpnScreen> {
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'vpn-fab',
         onPressed: () => _import(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Профиль'),
+        icon: const Icon(HugeIcons.strokeRoundedAdd01),
+        label: Text('vpn.profile'.tr()),
       ),
       body: ListenableBuilder(
         listenable: Listenable.merge([AppStore.instance, VpnController.instance]),
@@ -176,11 +178,10 @@ class _VpnScreenState extends State<VpnScreen> {
           final controller = VpnController.instance;
           if (profiles.isEmpty) {
             return EmptyState(
-              icon: Icons.vpn_key_rounded,
-              title: 'Нет VPN-профилей',
-              message:
-                  'Импортируйте файл WireGuard (.conf) один раз, и включайте VPN прямо здесь — туннель работает для всего устройства.',
-              actionLabel: 'Импортировать профиль',
+              icon: HugeIcons.strokeRoundedShieldKey,
+              title: 'vpn.empty_title'.tr(),
+              message: 'vpn.empty_msg'.tr(),
+              actionLabel: 'vpn.import_action'.tr(),
               onAction: () => _import(context),
             );
           }
@@ -201,7 +202,7 @@ class _VpnScreenState extends State<VpnScreen> {
                 ),
               const SizedBox(height: 16),
               Text(
-                'Конфигурации с приватным ключом хранятся только в защищённом хранилище устройства. VPN работает системно — весь трафик, включая SSH и FTP, идёт через туннель, пока он включён.',
+                'vpn.security_note'.tr(),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
               ),
             ],
@@ -237,7 +238,7 @@ class _StatusCard extends StatelessWidget {
       child: Row(
         children: [
           GradientIcon(
-            icon: connected ? Icons.vpn_lock_rounded : Icons.vpn_key_off_rounded,
+            icon: connected ? HugeIcons.strokeRoundedShieldKey : HugeIcons.strokeRoundedShieldEnergy,
             color: color == AppColors.textDim ? AppColors.accent : color,
             size: 48,
           ),
@@ -250,7 +251,7 @@ class _StatusCard extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 2),
                 Text(
-                  active != null ? active.name : 'VPN выключен',
+                  active != null ? active.name : 'vpn.off'.tr(),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13),
                 ),
                 if (controller.error != null) ...[
@@ -267,7 +268,7 @@ class _StatusCard extends StatelessWidget {
                 side: BorderSide(color: AppColors.red.withValues(alpha: 0.5)),
               ),
               onPressed: controller.disconnect,
-              child: const Text('Откл.'),
+              child: Text('vpn.disconnect'.tr()),
             ),
         ],
       ),
@@ -299,7 +300,7 @@ class _ProfileCard extends StatelessWidget {
         child: Row(
           children: [
             GradientIcon(
-              icon: Icons.shield_rounded,
+              icon: HugeIcons.strokeRoundedShield01,
               color: connected ? AppColors.green : AppColors.accent,
               size: 42,
             ),
@@ -332,9 +333,9 @@ class _ProfileCard extends StatelessWidget {
                 child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4)),
               )
             else
-              Switch(value: connected, onChanged: (_) => onToggle()),
+              AppSwitch(value: connected, onChanged: (_) => onToggle()),
             IconButton(
-              icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+              icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
               onPressed: onMenu,
             ),
           ],

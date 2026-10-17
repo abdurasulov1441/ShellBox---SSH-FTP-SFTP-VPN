@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -190,7 +192,7 @@ class _FilesScreenState extends State<FilesScreen> {
   }
 
   Future<void> _download(RemoteEntry entry) async {
-    await _withBusy('Скачивание ${entry.name}…', () async {
+    await _withBusy('files.downloading'.tr(namedArgs: {'name': entry.name}), () async {
       Directory? dir;
       try {
         dir = await getDownloadsDirectory();
@@ -200,12 +202,12 @@ class _FilesScreenState extends State<FilesScreen> {
       dir ??= await getApplicationDocumentsDirectory();
       final file = await _uniqueFile(dir, entry.name);
       await _fetch(entry.path, file);
-      showSnack('Сохранено: ${file.path}');
+      showSnack('files.saved'.tr(namedArgs: {'path': file.path}));
     });
   }
 
   Future<void> _share(RemoteEntry entry) async {
-    await _withBusy('Подготовка ${entry.name}…', () async {
+    await _withBusy('files.preparing'.tr(namedArgs: {'name': entry.name}), () async {
       final temp = await getTemporaryDirectory();
       final dir = Directory('${temp.path}${Platform.pathSeparator}shellbox_share');
       await dir.create(recursive: true);
@@ -219,15 +221,15 @@ class _FilesScreenState extends State<FilesScreen> {
   }
 
   Future<void> _rename(RemoteEntry entry) async {
-    final name = await promptText(title: 'Переименовать', label: 'Новое имя', initial: entry.name, mono: true);
+    final name = await promptText(title: 'keys.rename'.tr(), label: 'files.new_name'.tr(), initial: entry.name, mono: true);
     if (name == null || name == entry.name || !mounted) {
       return;
     }
     if (name.contains('/')) {
-      showSnack('Имя не должно содержать «/»', error: true);
+      showSnack('files.no_slash'.tr(), error: true);
       return;
     }
-    await _withBusy('Переименование…', () async {
+    await _withBusy('files.renaming'.tr(), () async {
       await _fs.rename(entry.path, joinRemote(parentRemote(entry.path), name));
       await _refresh();
     });
@@ -247,63 +249,66 @@ class _FilesScreenState extends State<FilesScreen> {
 
   Future<void> _delete(RemoteEntry entry) async {
     final ok = await confirmAction(
-      title: entry.isDir ? 'Удалить папку?' : 'Удалить файл?',
+      title: entry.isDir ? 'files.delete_folder_title'.tr() : 'files.delete_file_title'.tr(),
       message: entry.isDir
-          ? '«${entry.name}» и всё её содержимое будут удалены с сервера без возможности восстановления.'
-          : '«${entry.name}» будет удалён с сервера без возможности восстановления.',
+          ? 'files.delete_folder_msg'.tr(namedArgs: {'name': entry.name})
+          : 'files.delete_file_msg'.tr(namedArgs: {'name': entry.name}),
     );
     if (!ok || !mounted) {
       return;
     }
-    await _withBusy('Удаление…', () async {
+    await _withBusy('files.deleting'.tr(), () async {
       if (entry.isDir && !entry.isLink) {
         await _removeRecursive(entry.path);
       } else {
         await _fs.removeFile(entry.path);
       }
       await _refresh();
-      showSnack('Удалено: ${entry.name}');
+      showSnack('files.deleted'.tr(namedArgs: {'name': entry.name}));
     });
   }
 
   Future<void> _upload() async {
     final List<PlatformFile> files;
     try {
-      files = await FilePicker.pickFiles(dialogTitle: 'Выберите файлы для загрузки');
+      files = await FilePicker.pickFiles(dialogTitle: 'files.pick_upload'.tr());
     } catch (e) {
-      showSnack('Не удалось открыть выбор файлов: $e', error: true);
+      showSnack('files.pick_failed'.tr(namedArgs: {'error': '$e'}), error: true);
       return;
     }
     if (!mounted || files.isEmpty) {
       return;
     }
     final targetDir = _path;
-    await _withBusy('Загрузка…', () async {
+    await _withBusy('files.uploading'.tr(), () async {
       var index = 0;
       for (final file in files) {
         index++;
         if (mounted) {
-          setState(() => _busyLabel = 'Загрузка ${file.name} ($index/${files.length})…');
+          setState(() => _busyLabel =
+              'files.uploading_file'.tr(namedArgs: {'name': file.name, 'index': '$index', 'total': '${files.length}'}));
         }
         await _fs.upload(file, joinRemote(targetDir, file.name));
       }
       if (mounted && _path == targetDir) {
         await _refresh();
       }
-      showSnack(files.length == 1 ? 'Файл загружен' : 'Загружено файлов: ${files.length}');
+      showSnack(files.length == 1
+          ? 'files.uploaded_one'.tr()
+          : 'files.uploaded_many'.tr(namedArgs: {'count': '${files.length}'}));
     });
   }
 
   Future<void> _newFolder() async {
-    final name = await promptText(title: 'Новая папка', label: 'Имя папки', confirmLabel: 'Создать', mono: true);
+    final name = await promptText(title: 'files.new_folder'.tr(), label: 'files.folder_name'.tr(), confirmLabel: 'keys.create'.tr(), mono: true);
     if (name == null || !mounted) {
       return;
     }
     if (name.contains('/')) {
-      showSnack('Имя не должно содержать «/»', error: true);
+      showSnack('files.no_slash'.tr(), error: true);
       return;
     }
-    await _withBusy('Создание папки…', () async {
+    await _withBusy('files.creating_folder'.tr(), () async {
       await _fs.mkdir(joinRemote(_path, name));
       await _refresh();
     });
@@ -319,30 +324,30 @@ class _FilesScreenState extends State<FilesScreen> {
             SheetTitle(entry.name, subtitle: entry.path),
             if (entry.isDir || entry.isLink)
               ListTile(
-                leading: const Icon(Icons.folder_open_rounded),
-                title: const Text('Открыть'),
+                leading: const Icon(HugeIcons.strokeRoundedFolderOpen),
+                title: Text('files.open'.tr()),
                 onTap: () => Navigator.of(sheetContext).pop('open'),
               ),
             if (!entry.isDir) ...[
               ListTile(
-                leading: const Icon(Icons.download_rounded),
-                title: const Text('Скачать'),
+                leading: const Icon(HugeIcons.strokeRoundedDownload04),
+                title: Text('files.download'.tr()),
                 onTap: () => Navigator.of(sheetContext).pop('download'),
               ),
               ListTile(
-                leading: const Icon(Icons.share_rounded),
-                title: const Text('Поделиться'),
+                leading: const Icon(HugeIcons.strokeRoundedShare08),
+                title: Text('files.share'.tr()),
                 onTap: () => Navigator.of(sheetContext).pop('share'),
               ),
             ],
             ListTile(
-              leading: const Icon(Icons.drive_file_rename_outline_rounded),
-              title: const Text('Переименовать'),
+              leading: const Icon(HugeIcons.strokeRoundedFileEdit),
+              title: Text('keys.rename'.tr()),
               onTap: () => Navigator.of(sheetContext).pop('rename'),
             ),
             ListTile(
-              leading: Icon(Icons.delete_outline_rounded, color: AppColors.red),
-              title: Text('Удалить', style: TextStyle(color: AppColors.red)),
+              leading: Icon(HugeIcons.strokeRoundedDelete02, color: AppColors.red),
+              title: Text('common.delete'.tr(), style: TextStyle(color: AppColors.red)),
               onTap: () => Navigator.of(sheetContext).pop('delete'),
             ),
             const SizedBox(height: 8),
@@ -393,13 +398,13 @@ class _FilesScreenState extends State<FilesScreen> {
           actions: [
             if (ready) ...[
               IconButton(
-                tooltip: _showHidden ? 'Скрыть скрытые файлы' : 'Показать скрытые файлы',
-                icon: Icon(_showHidden ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+                tooltip: _showHidden ? 'files.hide_hidden'.tr() : 'files.show_hidden'.tr(),
+                icon: Icon(_showHidden ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
                 onPressed: () => setState(() => _showHidden = !_showHidden),
               ),
               IconButton(
-                tooltip: 'Новая папка',
-                icon: const Icon(Icons.create_new_folder_outlined),
+                tooltip: 'files.new_folder'.tr(),
+                icon: const Icon(HugeIcons.strokeRoundedFolderAdd),
                 onPressed: _busyLabel == null ? _newFolder : null,
               ),
             ],
@@ -410,8 +415,8 @@ class _FilesScreenState extends State<FilesScreen> {
             ? FloatingActionButton.extended(
                 heroTag: 'sftp-fab',
                 onPressed: _busyLabel == null ? _upload : null,
-                icon: const Icon(Icons.upload_rounded),
-                label: const Text('Загрузить'),
+                icon: const Icon(HugeIcons.strokeRoundedUpload04),
+                label: Text('files.upload'.tr()),
               )
             : null,
         body: Column(
@@ -458,7 +463,7 @@ class _FilesScreenState extends State<FilesScreen> {
             child: Row(
               children: [
                 for (var i = 0; i < crumbs.length; i++) ...[
-                  if (i > 0) Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textDim),
+                  if (i > 0) Icon(HugeIcons.strokeRoundedArrowRight01, size: 18, color: AppColors.textDim),
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: i == crumbs.length - 1 ? null : () => _open(crumbs[i].value),
@@ -491,7 +496,7 @@ class _FilesScreenState extends State<FilesScreen> {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('Подключение к ${widget.host.title}…', style: TextStyle(color: AppColors.textDim)),
+            Text('files.connecting'.tr(namedArgs: {'host': widget.host.title}), style: TextStyle(color: AppColors.textDim)),
           ],
         ),
       );
@@ -504,16 +509,16 @@ class _FilesScreenState extends State<FilesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              GradientIcon(icon: Icons.cloud_off_rounded, color: AppColors.red, size: 64),
+              GradientIcon(icon: HugeIcons.strokeRoundedWifiDisconnected01, color: AppColors.red, size: 64),
               const SizedBox(height: 18),
-              const Text('Не удалось подключиться', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+              Text('files.connect_failed'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
               const SizedBox(height: 8),
               Text(error, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: _connect,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Повторить'),
+                icon: const Icon(HugeIcons.strokeRoundedRefresh),
+                label: Text('files.retry'.tr()),
               ),
             ],
           ),
@@ -531,18 +536,18 @@ class _FilesScreenState extends State<FilesScreen> {
         itemBuilder: (context, index) {
           if (hasParent && index == 0) {
             return ListTile(
-              leading: _FileIcon(icon: Icons.drive_folder_upload_rounded, color: AppColors.textDim),
+              leading: _FileIcon(icon: HugeIcons.strokeRoundedFolderUpload, color: AppColors.textDim),
               title: Text('..', style: AppFonts.monoStyle(size: 14)),
-              subtitle: Text('Наверх', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+              subtitle: Text('files.up'.tr(), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               onTap: () => _open(parentRemote(_path)),
             );
           }
           final itemIndex = index - (hasParent ? 1 : 0);
           if (itemIndex >= visible.length) {
             return Padding(
-              padding: EdgeInsets.only(top: 60),
+              padding: const EdgeInsets.only(top: 60),
               child: Center(
-                child: Text('Папка пуста', style: TextStyle(color: AppColors.textDim)),
+                child: Text('files.folder_empty'.tr(), style: TextStyle(color: AppColors.textDim)),
               ),
             );
           }
@@ -554,8 +559,8 @@ class _FilesScreenState extends State<FilesScreen> {
           return ListTile(
             leading: _FileIcon(
               icon: entry.isDir
-                  ? Icons.folder_rounded
-                  : (entry.isLink ? Icons.link_rounded : Icons.insert_drive_file_outlined),
+                  ? HugeIcons.strokeRoundedFolder01
+                  : (entry.isLink ? HugeIcons.strokeRoundedLink01 : HugeIcons.strokeRoundedFile01),
               color: entry.isDir ? AppColors.accent : (entry.isLink ? AppColors.yellow : AppColors.textDim),
             ),
             title: Text(
@@ -575,7 +580,7 @@ class _FilesScreenState extends State<FilesScreen> {
               style: AppFonts.monoStyle(size: 11, color: AppColors.textDim),
             ),
             trailing: IconButton(
-              icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+              icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
               onPressed: _busyLabel == null ? () => _entryMenu(entry) : null,
             ),
             onTap: _busyLabel == null ? () => _tapEntry(entry) : null,
