@@ -6,6 +6,29 @@
     "copied": "Nusxalandi",
     "copied_value": "Nusxalandi: {value}"
   },
+  "run": {
+    "title": "Ishga tushirishdan oldingi buyruq",
+    "run": "Bajarish"
+  },
+  "wol": {
+    "title": "Wake-on-LAN",
+    "subtitle": "Qurilmani tarmoq orqali uyg'otish",
+    "empty_title": "Qurilmalar yo'q",
+    "empty_msg": "MAC-manzilli qurilma qo'shing — uni lokal tarmoqda magic-paket bilan uyg'otasiz.",
+    "add": "Qurilma qo'shish",
+    "mac": "MAC-manzil",
+    "broadcast": "Broadcast-manzil",
+    "port": "Port",
+    "send": "Uyg'otish",
+    "sent": "Magic-paket yuborildi: {name}",
+    "failed": "Paketni yuborib bo'lmadi",
+    "bad_mac": "Noto'g'ri MAC-manzil",
+    "new_title": "Yangi qurilma",
+    "edit_title": "Qurilmani tahrirlash",
+    "delete_title": "Qurilma o'chirilsinmi?",
+    "delete_msg": "\"{name}\" o'chiriladi.",
+    "log_sent": "Magic-paket → {mac}"
+  },
   "nav": {
     "hosts": "Xostlar",
     "keys": "Kalitlar",

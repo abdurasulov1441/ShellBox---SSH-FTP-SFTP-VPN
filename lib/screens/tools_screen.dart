@@ -9,6 +9,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import 'extra_tools_screen.dart';
 import 'local_terminal_screen.dart';
+import 'wol_screen.dart';
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
@@ -26,6 +27,8 @@ class ToolsScreen extends StatelessWidget {
           () => const EncoderScreen()),
       _Tool('tools.hashes'.tr(), 'tools.hashes_sub'.tr(), HugeIcons.strokeRoundedFingerAccess, const Color(0xFFF778BA),
           () => const HashScreen()),
+      _Tool('wol.title'.tr(), 'wol.subtitle'.tr(), HugeIcons.strokeRoundedComputerArrowUp, const Color(0xFF3FB950),
+          () => const WolScreen()),
       _Tool('tools.local_term'.tr(), 'tools.local_term_sub'.tr(), HugeIcons.strokeRoundedCommandLine,
           const Color(0xFFA371F7), () => const LocalTerminalScreen()),
     ];

@@ -285,3 +285,41 @@ class Snippet {
     );
   }
 }
+
+class WolDevice {
+  const WolDevice({
+    required this.id,
+    required this.name,
+    required this.mac,
+    this.broadcast = '255.255.255.255',
+    this.port = 9,
+  });
+
+  final String id;
+  final String name;
+  final String mac;
+  final String broadcast;
+  final int port;
+
+  WolDevice copyWith({String? name, String? mac, String? broadcast, int? port}) {
+    return WolDevice(
+      id: id,
+      name: name ?? this.name,
+      mac: mac ?? this.mac,
+      broadcast: broadcast ?? this.broadcast,
+      port: port ?? this.port,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'mac': mac, 'broadcast': broadcast, 'port': port};
+
+  factory WolDevice.fromJson(Map<String, dynamic> json) {
+    return WolDevice(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      mac: json['mac'] as String? ?? '',
+      broadcast: json['broadcast'] as String? ?? '255.255.255.255',
+      port: (json['port'] as num?)?.toInt() ?? 9,
+    );
+  }
+}

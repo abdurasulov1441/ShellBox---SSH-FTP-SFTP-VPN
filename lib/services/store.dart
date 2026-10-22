@@ -24,6 +24,7 @@ class AppStore extends ChangeNotifier {
   static const _lockEnabledKey = 'lock_enabled';
   static const _biometricKey = 'biometric_enabled';
   static const _vpnKey = 'vpn_profiles';
+  static const _wolKey = 'wol_devices';
 
   static final _random = Random.secure();
 
@@ -43,6 +44,7 @@ class AppStore extends ChangeNotifier {
   List<SshKey> _keys = [];
   List<Snippet> _snippets = [];
   List<VpnProfile> _vpnProfiles = [];
+  List<WolDevice> _wolDevices = [];
   Map<String, String> _knownHosts = {};
   double _fontSize = 14;
   String _terminalTheme = 'midnight';
@@ -56,6 +58,7 @@ class AppStore extends ChangeNotifier {
   List<SshKey> get keys => List.unmodifiable(_keys);
   List<Snippet> get snippets => List.unmodifiable(_snippets);
   List<VpnProfile> get vpnProfiles => List.unmodifiable(_vpnProfiles);
+  List<WolDevice> get wolDevices => List.unmodifiable(_wolDevices);
   Map<String, String> get knownHosts => Map.unmodifiable(_knownHosts);
   double get fontSize => _fontSize;
   String get terminalTheme => _terminalTheme;
@@ -151,6 +154,8 @@ class AppStore extends ChangeNotifier {
     _biometricEnabled = _prefs.getBool(_biometricKey) ?? false;
     _vpnProfiles =
         _decodeList(_prefs.getString(_vpnKey)).map(VpnProfile.fromJson).where((p) => p.id.isNotEmpty).toList();
+    _wolDevices =
+        _decodeList(_prefs.getString(_wolKey)).map(WolDevice.fromJson).where((d) => d.id.isNotEmpty).toList();
     notifyListeners();
   }
 
@@ -203,6 +208,25 @@ class AppStore extends ChangeNotifier {
   Future<void> _saveKnownHosts() => _prefs.setString(_knownHostsKey, jsonEncode(_knownHosts));
 
   Future<void> _saveVpn() => _prefs.setString(_vpnKey, jsonEncode(_vpnProfiles.map((p) => p.toJson()).toList()));
+
+  Future<void> _saveWol() => _prefs.setString(_wolKey, jsonEncode(_wolDevices.map((d) => d.toJson()).toList()));
+
+  Future<void> saveWolDevice(WolDevice device) async {
+    final index = _wolDevices.indexWhere((d) => d.id == device.id);
+    if (index >= 0) {
+      _wolDevices[index] = device;
+    } else {
+      _wolDevices.add(device);
+    }
+    await _saveWol();
+    notifyListeners();
+  }
+
+  Future<void> deleteWolDevice(String id) async {
+    _wolDevices.removeWhere((d) => d.id == id);
+    await _saveWol();
+    notifyListeners();
+  }
 
   String _passwordKey(String hostId) => 'pw_$hostId';
   String _privateKeyKey(String keyId) => 'pk_$keyId';

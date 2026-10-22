@@ -6,6 +6,29 @@
     "copied": "Copied",
     "copied_value": "Copied: {value}"
   },
+  "run": {
+    "title": "Command before running",
+    "run": "Run"
+  },
+  "wol": {
+    "title": "Wake-on-LAN",
+    "subtitle": "Wake a device over the network",
+    "empty_title": "No devices",
+    "empty_msg": "Add a device with a MAC address to wake it with a magic packet over the local network.",
+    "add": "Add device",
+    "mac": "MAC address",
+    "broadcast": "Broadcast address",
+    "port": "Port",
+    "send": "Wake",
+    "sent": "Magic packet sent: {name}",
+    "failed": "Could not send the packet",
+    "bad_mac": "Invalid MAC address",
+    "new_title": "New device",
+    "edit_title": "Edit device",
+    "delete_title": "Delete device?",
+    "delete_msg": "\"{name}\" will be deleted.",
+    "log_sent": "Magic packet → {mac}"
+  },
   "nav": {
     "hosts": "Hosts",
     "keys": "Keys",

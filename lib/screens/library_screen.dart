@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/services.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../data/command_library.dart';
 import '../models.dart';
@@ -9,20 +9,13 @@ import '../nav.dart';
 import '../services/sessions.dart';
 import '../services/store.dart';
 import '../theme.dart';
+import '../widgets/run_sheet.dart';
 
 class CommandLibraryScreen extends StatelessWidget {
   const CommandLibraryScreen({super.key});
 
-  Future<void> _run(LibraryCommand command) async {
-    final session = SessionManager.instance.connectedCurrent;
-    if (session == null) {
-      await Clipboard.setData(ClipboardData(text: command.command));
-      showSnack('snippets.no_session_copied'.tr());
-      return;
-    }
-    SessionManager.instance.selectSession(session);
-    session.run(command.command);
-    await showTerminal();
+  Future<void> _run(BuildContext context, LibraryCommand command) async {
+    await showRunSheet(context, command.command);
   }
 
   Future<void> _save(LibraryCommand command) async {
@@ -82,7 +75,7 @@ class _CategoryTile extends StatelessWidget {
   const _CategoryTile({required this.category, required this.onRun, required this.onSave});
 
   final LibraryCategory category;
-  final Future<void> Function(LibraryCommand) onRun;
+  final Future<void> Function(BuildContext, LibraryCommand) onRun;
   final Future<void> Function(LibraryCommand) onSave;
 
   @override
@@ -116,7 +109,7 @@ class _CategoryTile extends StatelessWidget {
                 icon: Icon(HugeIcons.strokeRoundedBookmarkAdd01, size: 20, color: AppColors.textDim),
                 onPressed: () => onSave(command),
               ),
-              onTap: () => onRun(command),
+              onTap: () => onRun(context, command),
               onLongPress: () async {
                 await Clipboard.setData(ClipboardData(text: command.command));
                 showSnack('keys.command_copied'.tr());

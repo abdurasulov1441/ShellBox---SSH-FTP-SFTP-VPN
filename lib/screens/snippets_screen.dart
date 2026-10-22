@@ -1,15 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:flutter/services.dart';
 
 import '../models.dart';
-import '../nav.dart';
 import '../services/sessions.dart';
 import '../services/store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/dialogs.dart';
+import '../widgets/run_sheet.dart';
 import 'library_screen.dart';
 
 class SnippetsScreen extends StatelessWidget {
@@ -23,17 +22,8 @@ class SnippetsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _run(Snippet snippet) async {
-    final manager = SessionManager.instance;
-    final session = manager.connectedCurrent;
-    if (session == null) {
-      await Clipboard.setData(ClipboardData(text: snippet.command));
-      showSnack('snippets.no_session_copied'.tr());
-      return;
-    }
-    manager.selectSession(session);
-    session.run(snippet.command);
-    await showTerminal();
+  Future<void> _run(BuildContext context, Snippet snippet) async {
+    await showRunSheet(context, snippet.command);
   }
 
   @override
@@ -118,7 +108,7 @@ class SnippetsScreen extends StatelessWidget {
                           return Card(
                             child: InkWell(
                               borderRadius: BorderRadius.circular(14),
-                              onTap: () => _run(snippet),
+                              onTap: () => _run(context, snippet),
                               onLongPress: () => _edit(context, snippet),
                               child: Padding(
                                 padding: const EdgeInsets.all(14),
