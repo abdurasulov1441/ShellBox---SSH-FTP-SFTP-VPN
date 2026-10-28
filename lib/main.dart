@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:easy_localization/easy_localization.dart';
@@ -12,6 +13,7 @@ import 'screens/splash_screen.dart';
 import 'services/activity_log.dart';
 import 'services/app_lock.dart';
 import 'services/auth_service.dart';
+import 'services/secure_window.dart';
 import 'services/store.dart';
 import 'services/theme_controller.dart';
 import 'theme.dart';
@@ -19,17 +21,17 @@ import 'theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  await AppStore.instance.load();
-  await ActivityLog.instance.load();
+  await Future.wait([AppStore.instance.load(), ActivityLog.instance.load()]);
   ThemeController.instance
       .loadMode(ThemeController.modeFromString(AppStore.instance.themeMode));
   AppColors.active = ThemeController.instance
       .resolvePalette(PlatformDispatcher.instance.platformBrightness);
-  try {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-    await AuthService.instance.init();
-  } catch (_) {}
+  unawaited(SecureWindow.apply(AppStore.instance.secureScreen));
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _reportCorruptData();
+    // Nothing on the first screen needs Firebase, so it starts after the first frame.
+    unawaited(_initFirebase());
+  });
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('ru'), Locale('uz'), Locale('en')],
@@ -39,6 +41,27 @@ Future<void> main() async {
       child: const ShellBoxApp(),
     ),
   );
+}
+
+Future<void> _initFirebase() async {
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+    await AuthService.instance.init();
+  } on Exception catch (e) {
+    ActivityLog.instance.error('Firebase', '$e');
+  }
+}
+
+void _reportCorruptData() {
+  final keys = AppStore.instance.corruptKeys;
+  if (keys.isEmpty) {
+    return;
+  }
+  final message =
+      'store.corrupt_data'.tr(namedArgs: {'keys': keys.join(', ')});
+  ActivityLog.instance.error('Storage', message);
+  showSnack(message, error: true);
 }
 
 class ShellBoxApp extends StatefulWidget {

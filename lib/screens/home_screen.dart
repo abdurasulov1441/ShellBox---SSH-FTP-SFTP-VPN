@@ -63,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: AppNavBar(
         currentIndex: _tab,
         onTap: (index) => setState(() => _tab = index),
+        centerLabel: 'hosts.add'.tr(),
         onCenterTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(builder: (_) => const HostEditorScreen()),
         ),

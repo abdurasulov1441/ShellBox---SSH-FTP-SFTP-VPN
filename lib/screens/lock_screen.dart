@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +23,8 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   String _pin = '';
   bool _error = false;
   bool _checking = false;
+  Duration? _lockout;
+  Timer? _lockoutTimer;
 
   final GlobalKey _circuitKey = GlobalKey();
   List<Offset> _targets = const [];
@@ -54,6 +58,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    _startLockout(AppLock.lockoutRemaining());
     if (AppLock.biometricEnabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _tryBiometric());
     }
@@ -61,8 +66,35 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
 
   @override
   void dispose() {
+    _lockoutTimer?.cancel();
     _shake.dispose();
     super.dispose();
+  }
+
+  void _startLockout(Duration? remaining) {
+    _lockoutTimer?.cancel();
+    _lockout = remaining;
+    if (remaining == null) {
+      return;
+    }
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) {
+        return;
+      }
+      final left = AppLock.lockoutRemaining();
+      setState(() => _lockout = left);
+      if (left == null) {
+        _lockoutTimer?.cancel();
+      }
+    });
+  }
+
+  String get _status {
+    final lockout = _lockout;
+    if (lockout != null) {
+      return 'lock.locked_for'.tr(namedArgs: {'seconds': '${lockout.inSeconds + 1}'});
+    }
+    return _error ? 'lock.wrong_pin'.tr() : 'lock.enter_pin'.tr();
   }
 
   Future<void> _tryBiometric() async {
@@ -82,7 +114,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _add(String digit) async {
-    if (_checking || _pin.length >= 4) {
+    if (_checking || _lockout != null || _pin.length >= 4) {
       return;
     }
     setState(() {
@@ -91,21 +123,22 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
     });
     if (_pin.length == 4) {
       setState(() => _checking = true);
-      final ok = await AppLock.verifyPin(_pin);
+      final result = await AppLock.verifyPin(_pin);
       if (!mounted) {
         return;
       }
-      if (ok) {
+      if (result is PinOk) {
         _unlock();
-      } else {
-        HapticFeedback.heavyImpact();
-        _shake.forward(from: 0);
-        setState(() {
-          _error = true;
-          _pin = '';
-          _checking = false;
-        });
+        return;
       }
+      HapticFeedback.heavyImpact();
+      _shake.forward(from: 0);
+      setState(() {
+        _error = true;
+        _pin = '';
+        _checking = false;
+        _startLockout(result is PinLocked ? result.remaining : null);
+      });
     }
   }
 
@@ -137,9 +170,15 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 18),
                   const Text('ShellBox', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
-                  Text(
-                    _error ? 'lock.wrong_pin'.tr() : 'lock.enter_pin'.tr(),
-                    style: TextStyle(color: _error ? AppColors.red : AppColors.textDim, fontSize: 14),
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      _status,
+                      style: TextStyle(
+                        color: _error || _lockout != null ? AppColors.red : AppColors.textDim,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 28),
                   AnimatedBuilder(

@@ -48,6 +48,31 @@ class ConnectError implements Exception {
 typedef HostKeyPrompt = Future<bool> Function(HostKeyCheck check);
 typedef PasswordPrompt = Future<PasswordReply?> Function(Host host);
 
+/// Trust-on-first-use check shared by SSH host keys and FTPS certificates.
+Future<bool> verifyKnownHost({
+  required Host host,
+  required String knownHostKey,
+  required String type,
+  required String fingerprint,
+  required HostKeyPrompt prompt,
+}) async {
+  final store = AppStore.instance;
+  final check = HostKeyCheck(
+    host: host,
+    type: type,
+    fingerprint: fingerprint,
+    previous: store.knownHosts[knownHostKey],
+  );
+  if (check.previous == check.value) {
+    return true;
+  }
+  final accepted = await prompt(check);
+  if (accepted) {
+    await store.trustHostKey(knownHostKey, check.value);
+  }
+  return accepted;
+}
+
 class SshConnector {
   static const legacyAlgorithms = SSHAlgorithms(
     kex: [
@@ -159,22 +184,14 @@ class SshConnector {
         }
         return answers;
       },
-      onVerifyHostKey: (String type, Uint8List fingerprint) async {
-        final check = HostKeyCheck(
-          host: host,
-          type: type,
-          fingerprint: utf8.decode(fingerprint, allowMalformed: true),
-          previous: store.knownHosts[host.endpoint],
-        );
-        if (check.previous == check.value) {
-          return true;
-        }
-        final accepted = await onHostKey(check);
-        if (accepted) {
-          await store.trustHostKey(host.endpoint, check.value);
-        }
-        return accepted;
-      },
+      // dartssh2 passes the fingerprint as UTF-8 text `SHA256:<base64>`.
+      onVerifyHostKey: (String type, Uint8List fingerprint) => verifyKnownHost(
+        host: host,
+        knownHostKey: host.endpoint,
+        type: type,
+        fingerprint: utf8.decode(fingerprint, allowMalformed: true),
+        prompt: onHostKey,
+      ),
     );
 
     try {

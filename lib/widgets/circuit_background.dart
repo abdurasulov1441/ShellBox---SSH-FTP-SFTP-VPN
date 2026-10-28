@@ -33,12 +33,25 @@ class _CircuitBackgroundState extends State<CircuitBackground> with TickerProvid
   );
 
   List<_Spec> _specs = const [];
+  bool _reduceMotion = false;
 
   @override
   void initState() {
     super.initState();
-    _pulse.repeat(reverse: true);
     _rebuild();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (_reduceMotion) {
+      _pulse.stop();
+      _pulse.value = 0.5;
+      _draw.value = 1;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
   }
 
   @override
@@ -80,7 +93,11 @@ class _CircuitBackgroundState extends State<CircuitBackground> with TickerProvid
       ));
     }
     _specs = specs;
-    _draw.forward(from: 0);
+    if (_reduceMotion) {
+      _draw.value = 1;
+    } else {
+      _draw.forward(from: 0);
+    }
   }
 
   @override
@@ -92,20 +109,25 @@ class _CircuitBackgroundState extends State<CircuitBackground> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_draw, _pulse]),
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _CircuitPainter(
-            specs: _specs,
-            color: widget.color,
-            radius: widget.buttonRadius,
-            progress: Curves.easeOutCubic.transform(_draw.value),
-            pulse: _pulse.value,
-          ),
-          size: Size.infinite,
-        );
-      },
+    // Decorative only; isolated so the 60 fps pulse does not repaint the PIN pad.
+    return ExcludeSemantics(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_draw, _pulse]),
+          builder: (context, _) {
+            return CustomPaint(
+              painter: _CircuitPainter(
+                specs: _specs,
+                color: widget.color,
+                radius: widget.buttonRadius,
+                progress: Curves.easeOutCubic.transform(_draw.value),
+                pulse: _pulse.value,
+              ),
+              size: Size.infinite,
+            );
+          },
+        ),
+      ),
     );
   }
 }

@@ -7,6 +7,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models.dart';
+import 'pin_hasher.dart';
+import 'stored_json.dart';
 
 class AppStore extends ChangeNotifier {
   AppStore._();
@@ -25,6 +27,10 @@ class AppStore extends ChangeNotifier {
   static const _biometricKey = 'biometric_enabled';
   static const _vpnKey = 'vpn_profiles';
   static const _wolKey = 'wol_devices';
+  static const _secureScreenKey = 'secure_screen';
+  static const _pinFailuresKey = 'pin_failures';
+  static const _pinLockedUntilKey = 'pin_locked_until';
+  static const _pinKey = 'app_pin';
 
   static final _random = Random.secure();
 
@@ -52,7 +58,9 @@ class AppStore extends ChangeNotifier {
   String _themeMode = 'system';
   bool _lockEnabled = false;
   bool _biometricEnabled = false;
+  bool _secureScreen = true;
   final List<String> _commandHistory = [];
+  final List<String> _corruptKeys = [];
 
   List<Host> get hosts => List.unmodifiable(_hosts);
   List<SshKey> get keys => List.unmodifiable(_keys);
@@ -66,6 +74,11 @@ class AppStore extends ChangeNotifier {
   String get themeMode => _themeMode;
   bool get lockEnabled => _lockEnabled;
   bool get biometricEnabled => _biometricEnabled;
+  bool get secureScreen => _secureScreen;
+
+  /// Storage keys whose data could not be read on the last [load]; the raw
+  /// value was backed up under `<key>.corrupt.<timestamp>`.
+  List<String> get corruptKeys => List.unmodifiable(_corruptKeys);
 
   List<String> get commandHistory => _commandHistory.reversed.toList(growable: false);
 
@@ -118,9 +131,15 @@ class AppStore extends ChangeNotifier {
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
-    final rawHosts = _decodeList(_prefs.getString(_hostsKey));
-    final unsupported = rawHosts.where((h) => h['protocol'] == 'rdp').toList();
-    _hosts = rawHosts.where((h) => h['protocol'] != 'rdp').map(Host.fromJson).where((h) => h.id.isNotEmpty).toList();
+    _corruptKeys.clear();
+    final rawHosts = _readRaw(_hostsKey);
+    final unsupported = rawHosts.items.where((h) => h['protocol'] == 'rdp').toList();
+    _hosts = await _parse(
+      _hostsKey,
+      DecodedList(rawHosts.items.where((h) => h['protocol'] != 'rdp').toList(), corrupt: rawHosts.corrupt),
+      Host.fromJson,
+      (h) => h.id.isNotEmpty,
+    );
     if (unsupported.isNotEmpty) {
       for (final host in unsupported) {
         final id = host['id'];
@@ -130,7 +149,7 @@ class AppStore extends ChangeNotifier {
       }
       await _saveHosts();
     }
-    _keys = _decodeList(_prefs.getString(_keysKey)).map(SshKey.fromJson).where((k) => k.id.isNotEmpty).toList();
+    _keys = await _parse(_keysKey, _readRaw(_keysKey), SshKey.fromJson, (k) => k.id.isNotEmpty);
     final snippetsRaw = _prefs.getString(_snippetsKey);
     if (snippetsRaw == null) {
       _snippets = [
@@ -142,9 +161,13 @@ class AppStore extends ChangeNotifier {
       ];
       await _saveSnippets();
     } else {
-      _snippets = _decodeList(snippetsRaw).map(Snippet.fromJson).where((s) => s.id.isNotEmpty).toList();
+      _snippets = await _parse(_snippetsKey, _readRaw(_snippetsKey), Snippet.fromJson, (s) => s.id.isNotEmpty);
     }
-    _knownHosts = _decodeMap(_prefs.getString(_knownHostsKey));
+    final known = decodeJsonMap(_prefs.getString(_knownHostsKey));
+    if (known.corrupt) {
+      await _backupCorrupt(_knownHostsKey);
+    }
+    _knownHosts = Map.fromEntries(known.items);
     final storedFont = _prefs.getDouble(_fontSizeKey);
     _fontSize = storedFont == null ? 14 : _limitFont(storedFont);
     _terminalTheme = _prefs.getString(_terminalThemeKey) ?? 'midnight';
@@ -152,41 +175,36 @@ class AppStore extends ChangeNotifier {
     _themeMode = _prefs.getString(_themeModeKey) ?? 'system';
     _lockEnabled = _prefs.getBool(_lockEnabledKey) ?? false;
     _biometricEnabled = _prefs.getBool(_biometricKey) ?? false;
-    _vpnProfiles =
-        _decodeList(_prefs.getString(_vpnKey)).map(VpnProfile.fromJson).where((p) => p.id.isNotEmpty).toList();
-    _wolDevices =
-        _decodeList(_prefs.getString(_wolKey)).map(WolDevice.fromJson).where((d) => d.id.isNotEmpty).toList();
+    _secureScreen = _prefs.getBool(_secureScreenKey) ?? true;
+    _vpnProfiles = await _parse(_vpnKey, _readRaw(_vpnKey), VpnProfile.fromJson, (p) => p.id.isNotEmpty);
+    _wolDevices = await _parse(_wolKey, _readRaw(_wolKey), WolDevice.fromJson, (d) => d.id.isNotEmpty);
     notifyListeners();
   }
 
-  List<Map<String, dynamic>> _decodeList(String? raw) {
-    if (raw == null || raw.isEmpty) {
-      return [];
+  DecodedList<Map<String, dynamic>> _readRaw(String key) => decodeJsonList(_prefs.getString(key));
+
+  Future<List<T>> _parse<T>(
+    String key,
+    DecodedList<Map<String, dynamic>> raw,
+    T Function(Map<String, dynamic>) parse,
+    bool Function(T) valid,
+  ) async {
+    final result = parseItems(raw, parse, valid);
+    if (result.corrupt) {
+      await _backupCorrupt(key);
     }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is List) {
-        return decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
-      }
-    } catch (_) {
-      return [];
-    }
-    return [];
+    return result.items;
   }
 
-  Map<String, String> _decodeMap(String? raw) {
-    if (raw == null || raw.isEmpty) {
-      return {};
+  /// Keeps an untouched copy of an unreadable collection so the next save
+  /// cannot silently destroy the user's data.
+  Future<void> _backupCorrupt(String key) async {
+    final raw = _prefs.getString(key);
+    if (raw == null) {
+      return;
     }
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) {
-        return decoded.map((k, v) => MapEntry(k.toString(), v.toString()));
-      }
-    } catch (_) {
-      return {};
-    }
-    return {};
+    await _prefs.setString('$key.corrupt.${DateTime.now().millisecondsSinceEpoch}', raw);
+    _corruptKeys.add(key);
   }
 
   double _limitFont(double value) {
@@ -401,16 +419,47 @@ class AppStore extends ChangeNotifier {
     await _prefs.setString(_themeModeKey, value);
   }
 
-  Future<String?> readPin() => _readSecret('app_pin');
+  Future<String?> readPin() => _readSecret(_pinKey);
+
+  Future<void> savePinHash(String hash) => _writeSecret(_pinKey, hash);
+
+  int get pinFailures => _prefs.getInt(_pinFailuresKey) ?? 0;
+
+  DateTime? get pinLockedUntil {
+    final ms = _prefs.getInt(_pinLockedUntilKey);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> recordPinFailure() async {
+    final failures = pinFailures + 1;
+    await _prefs.setInt(_pinFailuresKey, failures);
+    final delay = PinThrottle.delayAfter(failures);
+    if (delay > Duration.zero) {
+      await _prefs.setInt(_pinLockedUntilKey, DateTime.now().add(delay).millisecondsSinceEpoch);
+    }
+  }
+
+  Future<void> resetPinFailures() async {
+    await _prefs.remove(_pinFailuresKey);
+    await _prefs.remove(_pinLockedUntilKey);
+  }
+
+  Future<void> setSecureScreen(bool value) async {
+    _secureScreen = value;
+    await _prefs.setBool(_secureScreenKey, value);
+    notifyListeners();
+  }
 
   Future<void> setLock({required bool enabled, String? pin, bool? biometric}) async {
     _lockEnabled = enabled;
     await _prefs.setBool(_lockEnabledKey, enabled);
     if (pin != null) {
-      await _writeSecret('app_pin', pin);
+      await _writeSecret(_pinKey, await PinHasher.hash(pin));
+      await resetPinFailures();
     }
     if (!enabled) {
-      await _writeSecret('app_pin', null);
+      await _writeSecret(_pinKey, null);
+      await resetPinFailures();
       _biometricEnabled = false;
       await _prefs.setBool(_biometricKey, false);
     }

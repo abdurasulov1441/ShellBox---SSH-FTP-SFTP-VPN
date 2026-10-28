@@ -157,7 +157,11 @@ class _HostsScreenState extends State<HostsScreen> {
                       prefixIcon: const Icon(HugeIcons.strokeRoundedSearch01),
                       suffixIcon: _query.isEmpty
                           ? null
-                          : IconButton(icon: const Icon(HugeIcons.strokeRoundedCancel01), onPressed: _search.clear),
+                          : IconButton(
+                              tooltip: 'common.clear'.tr(),
+                              icon: const Icon(HugeIcons.strokeRoundedCancel01),
+                              onPressed: _search.clear,
+                            ),
                     ),
                   ),
                 ),

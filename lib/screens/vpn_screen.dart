@@ -335,6 +335,7 @@ class _ProfileCard extends StatelessWidget {
             else
               AppSwitch(value: connected, onChanged: (_) => onToggle()),
             IconButton(
+              tooltip: 'common.more'.tr(),
               icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
               onPressed: onMenu,
             ),

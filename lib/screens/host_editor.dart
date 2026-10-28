@@ -461,6 +461,7 @@ class _HostEditorScreenState extends State<HostEditorScreen> {
             helperText: _hasSavedPassword && !_removePassword ? 'editor.saved'.tr() : null,
             prefixIcon: const Icon(HugeIcons.strokeRoundedSquareLock01),
             suffixIcon: IconButton(
+              tooltip: _obscure ? 'common.show_password'.tr() : 'common.hide_password'.tr(),
               icon: Icon(_obscure ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
               onPressed: () => setState(() => _obscure = !_obscure),
             ),

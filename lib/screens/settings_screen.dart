@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 // import '../services/auth_service.dart'; // Google sign-in temporarily disabled
 import '../nav.dart';
 import '../services/app_lock.dart';
+import '../services/secure_window.dart';
 import '../services/sessions.dart';
 import '../services/store.dart';
 import '../services/theme_controller.dart';
@@ -316,6 +317,21 @@ class SettingsScreen extends StatelessWidget {
                           onTap: () => _changePin(context),
                         ),
                       ],
+                      const Divider(indent: 16, endIndent: 16),
+                      AppSwitchTile(
+                        leading: const GradientIcon(
+                          icon: HugeIcons.strokeRoundedViewOffSlash,
+                          color: Color(0xFFD29922),
+                          size: 38,
+                        ),
+                        title: 'settings.secure_screen'.tr(),
+                        subtitle: Text('settings.secure_screen_sub'.tr()),
+                        value: store.secureScreen,
+                        onChanged: (value) async {
+                          await store.setSecureScreen(value);
+                          await SecureWindow.apply(value);
+                        },
+                      ),
                     ],
                   ),
                 ),

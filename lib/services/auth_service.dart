@@ -43,7 +43,9 @@ class AuthService extends ChangeNotifier {
     _initialized = true;
     try {
       await GoogleSignIn.instance.initialize(serverClientId: _serverClientId);
-    } catch (_) {}
+    } on Exception catch (e) {
+      ActivityLog.instance.error('settings.account'.tr(), 'Google Sign-In init: $e');
+    }
     FirebaseAuth.instance.authStateChanges().listen((_) => notifyListeners());
   }
 
@@ -91,10 +93,18 @@ class AuthService extends ChangeNotifier {
   Future<void> signOut() async {
     try {
       await GoogleSignIn.instance.signOut();
-    } catch (_) {}
+    } on Exception catch (e) {
+      // The Firebase session is what matters; a Google-side failure is only logged.
+      ActivityLog.instance.error('settings.account'.tr(), 'Google sign-out: $e');
+    }
     try {
       await FirebaseAuth.instance.signOut();
-    } catch (_) {}
+    } on Exception catch (e) {
+      _error = 'auth.auth_error'.tr();
+      ActivityLog.instance.error('settings.account'.tr(), 'Firebase sign-out: $e');
+      notifyListeners();
+      return;
+    }
     ActivityLog.instance.info('settings.account'.tr(), 'auth.log_signed_out'.tr());
     notifyListeners();
   }

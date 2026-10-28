@@ -188,7 +188,15 @@ class _FilesScreenState extends State<FilesScreen> {
 
   Future<void> _fetch(String remotePath, File target) async {
     await target.parent.create(recursive: true);
-    await _fs.download(remotePath, target);
+    try {
+      await _fs.download(remotePath, target);
+    } catch (_) {
+      // Do not leave a half-written file that looks like a finished download.
+      if (await target.exists()) {
+        await target.delete();
+      }
+      rethrow;
+    }
   }
 
   Future<void> _download(RemoteEntry entry) async {
@@ -200,7 +208,7 @@ class _FilesScreenState extends State<FilesScreen> {
         dir = null;
       }
       dir ??= await getApplicationDocumentsDirectory();
-      final file = await _uniqueFile(dir, entry.name);
+      final file = await _uniqueFile(dir, safeLocalName(entry.name));
       await _fetch(entry.path, file);
       showSnack('files.saved'.tr(namedArgs: {'path': file.path}));
     });
@@ -210,11 +218,13 @@ class _FilesScreenState extends State<FilesScreen> {
     await _withBusy('files.preparing'.tr(namedArgs: {'name': entry.name}), () async {
       final temp = await getTemporaryDirectory();
       final dir = Directory('${temp.path}${Platform.pathSeparator}shellbox_share');
-      await dir.create(recursive: true);
-      final file = File('${dir.path}${Platform.pathSeparator}${entry.name}');
-      if (await file.exists()) {
-        await file.delete();
+      // The receiving app may read the file after share() returns, so the
+      // previous share's copies are removed here rather than right after.
+      if (await dir.exists()) {
+        await dir.delete(recursive: true);
       }
+      await dir.create(recursive: true);
+      final file = File('${dir.path}${Platform.pathSeparator}${safeLocalName(entry.name)}');
       await _fetch(entry.path, file);
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     });
@@ -580,6 +590,7 @@ class _FilesScreenState extends State<FilesScreen> {
               style: AppFonts.monoStyle(size: 11, color: AppColors.textDim),
             ),
             trailing: IconButton(
+              tooltip: 'common.more'.tr(),
               icon: Icon(HugeIcons.strokeRoundedMoreVerticalCircle01, color: AppColors.textDim),
               onPressed: _busyLabel == null ? () => _entryMenu(entry) : null,
             ),

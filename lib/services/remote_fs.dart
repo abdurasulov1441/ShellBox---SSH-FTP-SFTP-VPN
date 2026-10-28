@@ -35,6 +35,17 @@ class RemoteEntry {
 
 String joinRemote(String dir, String name) => dir == '/' ? '/$name' : '$dir/$name';
 
+/// Turns a server-supplied file name into a safe local file name, so a
+/// malicious server cannot write outside the target folder (`../`, `a/b`).
+String safeLocalName(String remoteName) {
+  final base = remoteName.split(RegExp(r'[/\\]')).last;
+  final cleaned = base.replaceAll(RegExp(r'[\x00-\x1f:*?"<>|]'), '_').trim();
+  if (cleaned.isEmpty || cleaned == '.' || cleaned == '..') {
+    return 'download';
+  }
+  return cleaned;
+}
+
 String parentRemote(String path) {
   if (path == '/' || path.isEmpty) {
     return '/';
@@ -244,7 +255,18 @@ class FtpFs implements RemoteFs {
         password = reply.password;
       }
     }
-    final ftp = FtpClient(host: host.address, port: host.port, secure: host.protocol == Protocol.ftps);
+    final ftp = FtpClient(
+      host: host.address,
+      port: host.port,
+      secure: host.protocol == Protocol.ftps,
+      verifyCertificate: (fingerprint) => verifyKnownHost(
+        host: host,
+        knownHostKey: 'tls:${host.endpoint}',
+        type: 'TLS',
+        fingerprint: fingerprint,
+        prompt: confirmHostKey,
+      ),
+    );
     try {
       await ftp.connect(_anonymous ? 'anonymous' : host.username.trim(), _anonymous ? 'anonymous@shellbox' : password);
     } catch (_) {

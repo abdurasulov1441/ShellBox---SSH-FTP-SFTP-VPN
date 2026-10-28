@@ -499,6 +499,7 @@ class _KeyImportScreenState extends State<KeyImportScreen> {
                 helperText: 'keys.encrypted'.tr(),
                 prefixIcon: const Icon(HugeIcons.strokeRoundedSquareLock01),
                 suffixIcon: IconButton(
+                  tooltip: _obscure ? 'common.show_password'.tr() : 'common.hide_password'.tr(),
                   icon: Icon(_obscure ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOffSlash),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),

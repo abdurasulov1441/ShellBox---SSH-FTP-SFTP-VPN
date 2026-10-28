@@ -174,7 +174,13 @@ class TerminalSession extends ChangeNotifier {
     }
     try {
       shell.write(Uint8List.fromList(utf8.encode(data)));
-    } catch (_) {}
+    } on StateError catch (e) {
+      // dartssh2 throws StateError when stdin of a closed channel is written;
+      // report the dead connection instead of swallowing keystrokes.
+      _onClosed(_generation, e);
+    } on Exception catch (e) {
+      _onClosed(_generation, e);
+    }
   }
 
   void input(String data) {

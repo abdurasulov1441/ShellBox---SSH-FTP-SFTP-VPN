@@ -4,7 +4,11 @@
     "save": "Save",
     "delete": "Delete",
     "copied": "Copied",
-    "copied_value": "Copied: {value}"
+    "copied_value": "Copied: {value}",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "more": "More actions",
+    "clear": "Clear"
   },
   "run": {
     "title": "Command before running",
@@ -46,7 +50,11 @@
   "lock": {
     "enter_pin": "Enter PIN",
     "wrong_pin": "Wrong PIN",
-    "biometric_reason": "Unlock ShellBox"
+    "biometric_reason": "Unlock ShellBox",
+    "locked_for": "Too many attempts. Try again in {seconds} s",
+    "pin_progress": "{filled} of {count} digits entered",
+    "biometric_button": "Unlock with biometrics",
+    "delete_digit": "Delete digit"
   },
   "password": {
     "title": "Password",
@@ -304,7 +312,9 @@
     "pin_changed": "PIN changed",
     "create_pin": "Create a PIN",
     "repeat_pin": "Repeat the PIN",
-    "pin_mismatch": "PINs do not match"
+    "pin_mismatch": "PINs do not match",
+    "secure_screen": "Hide content",
+    "secure_screen_sub": "Block screenshots and hide the app in recent apps"
   },
   "tools": {
     "title": "Tools",
@@ -464,7 +474,9 @@
     "login_error": "Login error: {text}",
     "send_failed": "Could not send the command",
     "ftp_no_response": "FTP: the server did not respond",
-    "pasv_parse": "Could not parse the PASV response: {text}"
+    "pasv_parse": "Could not parse the PASV response: {text}",
+    "ftps_untrusted": "The server certificate was not accepted. Connection closed.",
+    "ftp_bad_chars": "Line breaks are not allowed in FTP names, paths and passwords"
   },
   "port": {
     "d20": "FTP data transfer",
@@ -619,5 +631,8 @@
       "ipscan8": "Neighbor table (ARP)",
       "ipscan9": "ARP table"
     }
+  },
+  "store": {
+    "corrupt_data": "Some saved data could not be read ({keys}). A backup copy was kept."
   }
 }

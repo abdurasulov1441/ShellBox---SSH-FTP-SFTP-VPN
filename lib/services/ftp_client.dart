@@ -3,7 +3,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
+
+/// Asked when the server's TLS certificate is not trusted by the system;
+/// receives an OpenSSH-style `SHA256:<base64>` fingerprint of the certificate.
+typedef CertificatePrompt = Future<bool> Function(String fingerprint);
+
+String certificateFingerprint(List<int> der) =>
+    'SHA256:${base64.encode(sha256.convert(der).bytes).replaceAll('=', '')}';
+
+/// FTP commands are CRLF-terminated, so a CR or LF inside a user name,
+/// password or path would smuggle in an extra command.
+bool isSafeFtpArgument(String value) => !value.contains('\r') && !value.contains('\n');
 
 class FtpException implements Exception {
   const FtpException(this.message, [this.code]);
@@ -49,12 +61,14 @@ class FtpClient {
     this.port = 21,
     this.secure = false,
     this.timeout = const Duration(seconds: 20),
+    this.verifyCertificate,
   });
 
   final String host;
   final int port;
   final bool secure;
   final Duration timeout;
+  final CertificatePrompt? verifyCertificate;
 
   RawSocket? _control;
   StreamSubscription<RawSocketEvent>? _subscription;
@@ -65,7 +79,36 @@ class FtpClient {
   bool _closed = false;
   bool _mlsd = false;
 
-  static bool _acceptCertificate(X509Certificate certificate) => true;
+  X509Certificate? _untrustedCertificate;
+  String? _pinnedFingerprint;
+
+  // The handshake callback is synchronous, so an untrusted certificate is
+  // remembered here and confirmed with the user before any credentials go out.
+  bool _onControlCertificate(X509Certificate certificate) {
+    _untrustedCertificate = certificate;
+    return true;
+  }
+
+  // Data channels must present the same certificate the user already accepted.
+  bool _onDataCertificate(X509Certificate certificate) {
+    final pinned = _pinnedFingerprint;
+    return pinned != null && certificateFingerprint(certificate.der) == pinned;
+  }
+
+  Future<void> _confirmCertificate(RawSecureSocket socket) async {
+    final certificate = _untrustedCertificate;
+    if (certificate == null) {
+      return;
+    }
+    final fingerprint = certificateFingerprint(certificate.der);
+    final prompt = verifyCertificate;
+    final accepted = prompt != null && await prompt(fingerprint);
+    if (!accepted) {
+      await socket.close();
+      throw FtpException('conn.ftps_untrusted'.tr());
+    }
+    _pinnedFingerprint = fingerprint;
+  }
 
   Future<void> connect(String user, String password) async {
     final socket = await RawSocket.connect(host, port, timeout: timeout);
@@ -85,8 +128,9 @@ class FtpClient {
         socket,
         subscription: subscription,
         host: host,
-        onBadCertificate: _acceptCertificate,
+        onBadCertificate: _onControlCertificate,
       );
+      await _confirmCertificate(secured);
       _attach(secured);
       await _expect('PBSZ 0', const {200});
       await _expect('PROT P', const {200});
@@ -224,7 +268,12 @@ class FtpClient {
     return FtpReply(code, buffer.toString().trim());
   }
 
-  void _send(String command) => _write(utf8.encode('$command\r\n'));
+  void _send(String command) {
+    if (!isSafeFtpArgument(command)) {
+      throw FtpException('conn.ftp_bad_chars'.tr());
+    }
+    _write(utf8.encode('$command\r\n'));
+  }
 
   Future<FtpReply> _command(String command) async {
     _send(command);
@@ -265,7 +314,7 @@ class FtpClient {
     try {
       _send(command);
       final securing = secure
-          ? SecureSocket.secure(raw, host: host, onBadCertificate: _acceptCertificate)
+          ? SecureSocket.secure(raw, host: host, onBadCertificate: _onDataCertificate)
           : Future<Socket>.value(raw);
       final start = await _readReply();
       if (!start.preliminary) {

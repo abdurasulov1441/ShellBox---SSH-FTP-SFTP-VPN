@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -16,28 +17,33 @@ class PinDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var i = 0; i < count; i++)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: 15,
-            height: 15,
-            margin: const EdgeInsets.symmetric(horizontal: 11),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: i < filled ? (error ? AppColors.red : AppColors.accent) : Colors.transparent,
-              border: Border.all(
-                color: error ? AppColors.red : (i < filled ? AppColors.accent : AppColors.textDim.withValues(alpha: 0.5)),
-                width: 2,
+    return Semantics(
+      liveRegion: true,
+      label: 'lock.pin_progress'.tr(namedArgs: {'filled': '$filled', 'count': '$count'}),
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 0; i < count; i++)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: 15,
+              height: 15,
+              margin: const EdgeInsets.symmetric(horizontal: 11),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: i < filled ? (error ? AppColors.red : AppColors.accent) : Colors.transparent,
+                border: Border.all(
+                  color: error ? AppColors.red : (i < filled ? AppColors.accent : AppColors.textDim),
+                  width: 2,
+                ),
+                boxShadow: i < filled && !error
+                    ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.5), blurRadius: 10)]
+                    : null,
               ),
-              boxShadow: i < filled && !error
-                  ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.5), blurRadius: 10)]
-                  : null,
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -128,9 +134,19 @@ class _PinPadState extends State<PinPad> {
             children: [
               widget.onBiometric == null
                   ? const SizedBox(width: kPadButtonSize, height: kPadButtonSize)
-                  : _PadButton(key: _keys[9], icon: HugeIcons.strokeRoundedFingerPrint, onTap: widget.onBiometric!),
+                  : _PadButton(
+                      key: _keys[9],
+                      icon: HugeIcons.strokeRoundedFingerPrint,
+                      semanticLabel: 'lock.biometric_button'.tr(),
+                      onTap: widget.onBiometric!,
+                    ),
               digit('0', 10),
-              _PadButton(key: _keys[11], icon: HugeIcons.strokeRoundedDelete02, onTap: widget.onBackspace),
+              _PadButton(
+                key: _keys[11],
+                icon: HugeIcons.strokeRoundedDelete02,
+                semanticLabel: 'lock.delete_digit'.tr(),
+                onTap: widget.onBackspace,
+              ),
             ],
           ),
         ],
@@ -140,10 +156,11 @@ class _PinPadState extends State<PinPad> {
 }
 
 class _PadButton extends StatefulWidget {
-  const _PadButton({super.key, this.label, this.icon, required this.onTap});
+  const _PadButton({super.key, this.label, this.icon, this.semanticLabel, required this.onTap});
 
   final String? label;
   final IconData? icon;
+  final String? semanticLabel;
   final VoidCallback onTap;
 
   @override
@@ -155,36 +172,44 @@ class _PadButtonState extends State<_PadButton> {
 
   void _set(bool v) => setState(() => _down = v);
 
+  void _activate() {
+    HapticFeedback.selectionClick();
+    widget.onTap();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _set(true),
-      onTapUp: (_) => _set(false),
-      onTapCancel: () => _set(false),
-      onTap: () {
-        HapticFeedback.selectionClick();
-        widget.onTap();
-      },
-      child: AnimatedScale(
-        scale: _down ? 0.9 : 1,
-        duration: const Duration(milliseconds: 90),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: kPadButtonSize,
-          height: kPadButtonSize,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _down ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surface.withValues(alpha: 0.65),
-            border: Border.all(
-              color: _down ? AppColors.accent : AppColors.border,
-              width: _down ? 1.6 : 1,
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return Semantics(
+      button: true,
+      label: widget.semanticLabel ?? widget.label,
+      excludeSemantics: true,
+      onTap: _activate,
+      child: GestureDetector(
+        onTapDown: (_) => _set(true),
+        onTapUp: (_) => _set(false),
+        onTapCancel: () => _set(false),
+        onTap: _activate,
+        child: AnimatedScale(
+          scale: _down ? 0.9 : 1,
+          duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 90),
+          child: AnimatedContainer(
+            duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
+            width: kPadButtonSize,
+            height: kPadButtonSize,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _down ? AppColors.accent.withValues(alpha: 0.18) : AppColors.surface.withValues(alpha: 0.65),
+              border: Border.all(
+                color: _down ? AppColors.accent : AppColors.border,
+                width: _down ? 1.6 : 1,
+              ),
             ),
+            child: widget.icon != null
+                ? Icon(widget.icon, size: 25, color: AppColors.text)
+                : Text(widget.label ?? '', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
           ),
-          child: widget.icon != null
-              ? Icon(widget.icon, size: 25, color: AppColors.text)
-              : Text(widget.label ?? '',
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
         ),
       ),
     );

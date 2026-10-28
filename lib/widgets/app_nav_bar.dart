@@ -18,6 +18,7 @@ class AppNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.onCenterTap,
+    required this.centerLabel,
     this.centerIcon = HugeIcons.strokeRoundedPlusSign,
   });
 
@@ -25,6 +26,7 @@ class AppNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final VoidCallback onCenterTap;
+  final String centerLabel;
   final IconData centerIcon;
 
   @override
@@ -50,7 +52,13 @@ class AppNavBar extends StatelessWidget {
             children: [
               for (var i = 0; i < left.length; i++)
                 Expanded(child: _NavButton(item: left[i], active: currentIndex == i, onTap: () => onTap(i))),
-              _CenterButton(icon: centerIcon, onTap: onCenterTap),
+              Semantics(
+                button: true,
+                label: centerLabel,
+                excludeSemantics: true,
+                onTap: onCenterTap,
+                child: _CenterButton(icon: centerIcon, onTap: onCenterTap),
+              ),
               for (var i = 0; i < right.length; i++)
                 Expanded(
                   child: _NavButton(
@@ -77,6 +85,17 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.accent : AppColors.textDim;
+    return Semantics(
+      button: true,
+      selected: active,
+      label: item.label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: _buildTarget(color),
+    );
+  }
+
+  Widget _buildTarget(Color color) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {

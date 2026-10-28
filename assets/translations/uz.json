@@ -4,7 +4,11 @@
     "save": "Saqlash",
     "delete": "O'chirish",
     "copied": "Nusxalandi",
-    "copied_value": "Nusxalandi: {value}"
+    "copied_value": "Nusxalandi: {value}",
+    "show_password": "Parolni ko'rsatish",
+    "hide_password": "Parolni yashirish",
+    "more": "Boshqa amallar",
+    "clear": "Tozalash"
   },
   "run": {
     "title": "Ishga tushirishdan oldingi buyruq",
@@ -46,7 +50,11 @@
   "lock": {
     "enter_pin": "PIN-kodni kiriting",
     "wrong_pin": "PIN noto'g'ri",
-    "biometric_reason": "ShellBox qulfini oching"
+    "biometric_reason": "ShellBox qulfini oching",
+    "locked_for": "Juda ko'p urinish. {seconds} soniyadan keyin qayta urining",
+    "pin_progress": "{count} tadan {filled} ta raqam kiritildi",
+    "biometric_button": "Biometriya bilan ochish",
+    "delete_digit": "Raqamni o'chirish"
   },
   "password": {
     "title": "Parol",
@@ -304,7 +312,9 @@
     "pin_changed": "PIN-kod o'zgartirildi",
     "create_pin": "PIN-kod yarating",
     "repeat_pin": "PIN-kodni takrorlang",
-    "pin_mismatch": "PIN-kodlar mos kelmaydi"
+    "pin_mismatch": "PIN-kodlar mos kelmaydi",
+    "secure_screen": "Kontentni yashirish",
+    "secure_screen_sub": "Skrinshotlarni taqiqlash va ilovani so'nggi ilovalarda yashirish"
   },
   "tools": {
     "title": "Asboblar",
@@ -464,7 +474,9 @@
     "login_error": "Kirish xatosi: {text}",
     "send_failed": "Buyruqni yuborib bo'lmadi",
     "ftp_no_response": "FTP: server javob bermadi",
-    "pasv_parse": "PASV javobini tahlil qilib bo'lmadi: {text}"
+    "pasv_parse": "PASV javobini tahlil qilib bo'lmadi: {text}",
+    "ftps_untrusted": "Server sertifikati qabul qilinmadi. Ulanish yopildi.",
+    "ftp_bad_chars": "FTP nomlari, yo'llari va parollarida qator ko'chirish mumkin emas"
   },
   "port": {
     "d20": "FTP ma'lumot uzatish",
@@ -619,5 +631,8 @@
       "ipscan8": "Qo'shnilar jadvali (ARP)",
       "ipscan9": "ARP jadvali"
     }
+  },
+  "store": {
+    "corrupt_data": "Saqlangan ma'lumotlarning bir qismini o'qib bo'lmadi ({keys}). Zaxira nusxa saqlandi."
   }
 }

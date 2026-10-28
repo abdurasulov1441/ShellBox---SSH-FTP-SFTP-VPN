@@ -4,7 +4,11 @@
     "save": "Сохранить",
     "delete": "Удалить",
     "copied": "Скопировано",
-    "copied_value": "Скопировано: {value}"
+    "copied_value": "Скопировано: {value}",
+    "show_password": "Показать пароль",
+    "hide_password": "Скрыть пароль",
+    "more": "Другие действия",
+    "clear": "Очистить"
   },
   "run": {
     "title": "Команда перед запуском",
@@ -46,7 +50,11 @@
   "lock": {
     "enter_pin": "Введите PIN-код",
     "wrong_pin": "Неверный PIN",
-    "biometric_reason": "Разблокируйте ShellBox"
+    "biometric_reason": "Разблокируйте ShellBox",
+    "locked_for": "Слишком много попыток. Повторите через {seconds} с",
+    "pin_progress": "Введено {filled} из {count} цифр",
+    "biometric_button": "Разблокировать биометрией",
+    "delete_digit": "Удалить цифру"
   },
   "password": {
     "title": "Пароль",
@@ -304,7 +312,9 @@
     "pin_changed": "PIN-код изменён",
     "create_pin": "Создайте PIN-код",
     "repeat_pin": "Повторите PIN-код",
-    "pin_mismatch": "PIN-коды не совпадают"
+    "pin_mismatch": "PIN-коды не совпадают",
+    "secure_screen": "Скрывать содержимое",
+    "secure_screen_sub": "Запретить скриншоты и скрыть приложение в списке недавних"
   },
   "tools": {
     "title": "Инструменты",
@@ -464,7 +474,9 @@
     "login_error": "Ошибка входа: {text}",
     "send_failed": "Не удалось отправить команду",
     "ftp_no_response": "FTP: сервер не ответил",
-    "pasv_parse": "Не удалось разобрать ответ PASV: {text}"
+    "pasv_parse": "Не удалось разобрать ответ PASV: {text}",
+    "ftps_untrusted": "Сертификат сервера не принят. Соединение закрыто.",
+    "ftp_bad_chars": "Переносы строк недопустимы в именах, путях и паролях FTP"
   },
   "port": {
     "d20": "Передача данных FTP",
@@ -619,5 +631,8 @@
       "ipscan8": "Таблица соседей (ARP)",
       "ipscan9": "ARP-таблица"
     }
+  },
+  "store": {
+    "corrupt_data": "Часть сохранённых данных не удалось прочитать ({keys}). Резервная копия сохранена."
   }
 }
